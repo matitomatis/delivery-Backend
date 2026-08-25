@@ -1,0 +1,30 @@
+## Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Build folders
+bin/
+obj/
+
+## Rider
+.idea/
+
+## Visual Studio Code
+.vscode/
+
+## NuGet
+*.nupkg
+packages/
+
+## Logs
+*.log
+
+## OS files
+.DS_Store
+Thumbs.db
+
+## SQLite
+*.db
