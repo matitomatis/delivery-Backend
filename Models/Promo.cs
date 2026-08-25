@@ -26,6 +26,7 @@ namespace delivery.Models
         public bool Activa { get; set; } = true;
 
         // Propiedad de navegación: Una promo tiene una lista de detalles asociados
-        public virtual ICollection<DetallePromo> Detalles { get; set; }
+        
+        public List<DetallePromo> DetallePromos { get; set; } = new List<DetallePromo>();
     }
 }
