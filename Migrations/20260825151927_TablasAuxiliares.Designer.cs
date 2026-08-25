@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using delivery.Repositories;
 
@@ -11,9 +12,11 @@ using delivery.Repositories;
 namespace delivery.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260825151927_TablasAuxiliares")]
+    partial class TablasAuxiliares
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -73,7 +76,7 @@ namespace delivery.Migrations
 
             modelBuilder.Entity("delivery.Models.DetallePedido", b =>
                 {
-                    b.Property<int>("CodPedido")
+                    b.Property<int>("NroPedido")
                         .HasColumnType("int");
 
                     b.Property<int>("CodPromo")
@@ -82,22 +85,14 @@ namespace delivery.Migrations
                     b.Property<short>("Cantidad")
                         .HasColumnType("smallint");
 
-                    b.Property<int?>("CodArticulo")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CodDetalle")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("PrecioUnitario")
+                    b.Property<decimal>("PreUnitario")
                         .HasColumnType("decimal(18,2)");
 
-                    b.HasKey("CodPedido", "CodPromo");
-
-                    b.HasIndex("CodArticulo");
+                    b.HasKey("NroPedido", "CodPromo");
 
                     b.HasIndex("CodPromo");
 
-                    b.ToTable("detalle_pedidos");
+                    b.ToTable("detalles_pedido");
                 });
 
             modelBuilder.Entity("delivery.Models.DetallePromo", b =>
@@ -138,34 +133,36 @@ namespace delivery.Migrations
 
             modelBuilder.Entity("delivery.Models.Pedido", b =>
                 {
-                    b.Property<int>("CodPedido")
+                    b.Property<int>("Nro_pedido")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CodPedido"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Nro_pedido"));
 
-                    b.Property<int>("CodCliente")
+                    b.Property<int>("Cod_cliente")
                         .HasColumnType("int");
 
-                    b.Property<int>("CodFormaPago")
-                        .HasColumnType("int");
+                    b.Property<string>("DireccionEnvio")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("CodTipoEnvio")
-                        .HasColumnType("int");
+                    b.Property<string>("Estado")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("Fecha")
+                    b.Property<DateTime>("FechaPedido")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("FormaEntrega")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FormaPago")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Total")
                         .HasColumnType("decimal(18,2)");
 
-                    b.HasKey("CodPedido");
-
-                    b.HasIndex("CodCliente");
-
-                    b.HasIndex("CodFormaPago");
-
-                    b.HasIndex("CodTipoEnvio");
+                    b.HasKey("Nro_pedido");
 
                     b.ToTable("pedidos");
                 });
@@ -225,23 +222,17 @@ namespace delivery.Migrations
 
             modelBuilder.Entity("delivery.Models.DetallePedido", b =>
                 {
-                    b.HasOne("delivery.Models.Articulo", "Articulo")
-                        .WithMany()
-                        .HasForeignKey("CodArticulo");
-
-                    b.HasOne("delivery.Models.Pedido", "Pedido")
-                        .WithMany("Detalles")
-                        .HasForeignKey("CodPedido")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("delivery.Models.Promo", "Promo")
                         .WithMany()
                         .HasForeignKey("CodPromo")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Articulo");
+                    b.HasOne("delivery.Models.Pedido", "Pedido")
+                        .WithMany()
+                        .HasForeignKey("NroPedido")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Pedido");
 
@@ -265,38 +256,6 @@ namespace delivery.Migrations
                     b.Navigation("Articulo");
 
                     b.Navigation("Promo");
-                });
-
-            modelBuilder.Entity("delivery.Models.Pedido", b =>
-                {
-                    b.HasOne("delivery.Models.Cliente", "Cliente")
-                        .WithMany()
-                        .HasForeignKey("CodCliente")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("delivery.Models.FormaPago", "FormaPago")
-                        .WithMany()
-                        .HasForeignKey("CodFormaPago")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("delivery.Models.TipoEnvio", "TipoEnvio")
-                        .WithMany()
-                        .HasForeignKey("CodTipoEnvio")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Cliente");
-
-                    b.Navigation("FormaPago");
-
-                    b.Navigation("TipoEnvio");
-                });
-
-            modelBuilder.Entity("delivery.Models.Pedido", b =>
-                {
-                    b.Navigation("Detalles");
                 });
 
             modelBuilder.Entity("delivery.Models.Promo", b =>

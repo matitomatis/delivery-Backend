@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using delivery.Repositories;
 
@@ -11,9 +12,11 @@ using delivery.Repositories;
 namespace delivery.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260825153426_AgregandoPedidos")]
+    partial class AgregandoPedidos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -73,7 +76,7 @@ namespace delivery.Migrations
 
             modelBuilder.Entity("delivery.Models.DetallePedido", b =>
                 {
-                    b.Property<int>("CodPedido")
+                    b.Property<int>("NroPedido")
                         .HasColumnType("int");
 
                     b.Property<int>("CodPromo")
@@ -82,22 +85,14 @@ namespace delivery.Migrations
                     b.Property<short>("Cantidad")
                         .HasColumnType("smallint");
 
-                    b.Property<int?>("CodArticulo")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CodDetalle")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("PrecioUnitario")
+                    b.Property<decimal>("PreUnitario")
                         .HasColumnType("decimal(18,2)");
 
-                    b.HasKey("CodPedido", "CodPromo");
-
-                    b.HasIndex("CodArticulo");
+                    b.HasKey("NroPedido", "CodPromo");
 
                     b.HasIndex("CodPromo");
 
-                    b.ToTable("detalle_pedidos");
+                    b.ToTable("detalles_pedido");
                 });
 
             modelBuilder.Entity("delivery.Models.DetallePromo", b =>
@@ -225,23 +220,17 @@ namespace delivery.Migrations
 
             modelBuilder.Entity("delivery.Models.DetallePedido", b =>
                 {
-                    b.HasOne("delivery.Models.Articulo", "Articulo")
-                        .WithMany()
-                        .HasForeignKey("CodArticulo");
-
-                    b.HasOne("delivery.Models.Pedido", "Pedido")
-                        .WithMany("Detalles")
-                        .HasForeignKey("CodPedido")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("delivery.Models.Promo", "Promo")
                         .WithMany()
                         .HasForeignKey("CodPromo")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Articulo");
+                    b.HasOne("delivery.Models.Pedido", "Pedido")
+                        .WithMany("Detalles")
+                        .HasForeignKey("NroPedido")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Pedido");
 

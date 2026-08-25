@@ -16,6 +16,8 @@ namespace delivery.Repositories
         public DbSet<DetallePromo> DetallePromos { get; set; }
         public DbSet<Pedido> Pedidos { get; set; }
         public DbSet<DetallePedido> DetallePedidos { get; set; }
+        public DbSet<FormaPago> FormasPago { get; set; }
+        public DbSet<TipoEnvio> TiposEnvio { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -25,9 +27,9 @@ namespace delivery.Repositories
             modelBuilder.Entity<DetallePromo>()
                 .HasKey(dp => new { dp.CodPromo, dp.CodArticulo });
 
-            // Configuración de la clave primaria compuesta para DetallePedido
-            modelBuilder.Entity<DetallePedido>()
-                .HasKey(dp => new { dp.NroPedido, dp.CodPromo });
+            // DetallePedido usa la clave primaria definida en la entidad (CodDetalle).
+            // Eliminamos la configuración de clave compuesta que causaba conflicto
+            // con la relación opcional a Promo (CodPromo puede ser null).
         }
     }
 }

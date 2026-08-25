@@ -9,6 +9,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddScoped<IArticuloRepository, ArticuloRepository>();
 builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
 builder.Services.AddScoped<IPromoRepository, PromoRepository>();
+builder.Services.AddScoped<IFormaPagoRepository, FormaPagoRepository>();
+builder.Services.AddScoped<ITipoEnvioRepository, TipoEnvioRepository>();
+builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
 // Add services to the container.
 
 builder.Services.AddControllers();

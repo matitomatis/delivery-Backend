@@ -1,22 +1,36 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace delivery.Models
 {
-    [Table("detalles_pedido")]
+    [Table("detalle_pedidos")]
     public class DetallePedido
     {
-        public int NroPedido { get; set; }
-        [ForeignKey("NroPedido")]
-        public virtual Pedido Pedido { get; set; }
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int CodDetalle { get; set; }
 
-        // Clave Foránea y parte de la PK compuesta hacia Promo
-        public int CodPromo { get; set; }
+        public int CodPedido { get; set; }
+        [JsonIgnore]
+        [ForeignKey("CodPedido")]
+        public virtual Pedido? Pedido { get; set; }
+
+        // Puede ser un Artículo...
+        public int? CodArticulo { get; set; }
+        [JsonIgnore]
+        [ForeignKey("CodArticulo")]
+        public virtual Articulo? Articulo { get; set; }
+
+        // ... o puede ser una Promo
+        public int? CodPromo { get; set; }
+        [JsonIgnore]
         [ForeignKey("CodPromo")]
-        public virtual Promo Promo { get; set; }
+        public virtual Promo? Promo { get; set; }
+
         [Required]
         public short Cantidad { get; set; }
-        [Required]
-        public decimal PreUnitario { get; set; }
+
+        public decimal PrecioUnitario { get; set; }
     }
 }
