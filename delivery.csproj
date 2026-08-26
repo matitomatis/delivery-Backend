@@ -22,4 +22,8 @@
     <Folder Include="Services\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\delivery.Data\delivery.Data.csproj" />
+  </ItemGroup>
+
 </Project>
