@@ -3,6 +3,7 @@ using delivery.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using delivery.DTOs;
 
 namespace delivery.Controllers
 {
@@ -20,10 +21,21 @@ namespace delivery.Controllers
 
         // GET: api/Articulos
         [HttpGet]
-        public async Task<ActionResult<List<Articulo>>> GetArticulos()
+        public async Task<ActionResult<List<ArticuloGetDTO>>> Get()
         {
+            // Traemos los datos crudos
             var articulos = await _repository.GetAllAsync();
-            return Ok(articulos); // Devuelve un 200 OK con la lista
+
+            // Los traducimos al DTO seguro
+            var articulosDto = articulos.Select(a => new ArticuloGetDTO
+            {
+                CodArticulo = a.CodArticulo,
+                Descripcion = a.Descripcion,
+                Costo = a.Costo,
+                Stock = a.Stock
+            }).ToList();
+
+            return Ok(articulosDto);
         }
 
         // GET: api/Articulos/5
@@ -40,10 +52,19 @@ namespace delivery.Controllers
 
         // POST: api/Articulos
         [HttpPost]
-        public async Task<ActionResult> GuardarArticulo(Articulo articulo)
+        public async Task<ActionResult> Post(ArticuloCreateDTO articuloDto)
         {
-            await _repository.SaveAsync(articulo);
-            return Ok(); // Devuelve un 200 OK cuando termina de guardar
+            // Armamos la Entidad real usando los datos del formulario DTO
+            var nuevoArticulo = new Articulo
+            {
+                Descripcion = articuloDto.Descripcion,
+                Costo = articuloDto.Costo,
+                Stock = articuloDto.Stock
+            };
+
+            // La mandamos a guardar
+            await _repository.SaveAsync(nuevoArticulo);
+            return Ok();
         }
 
         // DELETE: api/Articulos/5
