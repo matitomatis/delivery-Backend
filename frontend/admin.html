@@ -1,0 +1,334 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Delivery</title>
+    <style>
+        :root {
+            --primary: #2f3542;
+            --accent: #ff4757;
+            --success: #2ed573;
+            --bg: #f1f2f6;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            .header h1 {
+                margin: 0;
+                font-size: 1.5rem;
+            }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 1024px) {
+            .dashboard {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .modulo {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+            .modulo h2 {
+                margin-top: 0;
+                border-bottom: 2px solid var(--bg);
+                padding-bottom: 10px;
+                color: var(--primary);
+            }
+
+        .formulario {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+            color: #57606f;
+            font-size: 0.9em;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .btn-guardar {
+            width: 100%;
+            padding: 12px;
+            margin-top: 15px;
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+            .btn-guardar:hover {
+                background: #26b963;
+            }
+
+        .mensaje {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+            min-height: 20px;
+            font-size: 0.9em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.95em;
+        }
+
+        th {
+            background: var(--bg);
+            color: var(--primary);
+        }
+
+        .btn-borrar {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+        }
+
+            .btn-borrar:hover {
+                background: #e03e4d;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>⚙️ Panel de Administración Full</h1>
+        <a href="index.html" style="color: white; text-decoration: none; background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 5px;">Ir al menú público ➔</a>
+    </div>
+
+    <div class="dashboard">
+
+        <!-- MÓDULO 1: ARTÍCULOS INDIVIDUALES -->
+        <div class="modulo">
+            <h2>🍔 Artículos</h2>
+
+            <div class="formulario">
+                <label>Descripción del artículo:</label>
+                <input type="text" id="descArticulo" placeholder="Ej: Hamburguesa Simple">
+                <label>Precio ($):</label>
+                <input type="number" id="costoArticulo" placeholder="Ej: 4500">
+                <button class="btn-guardar" onclick="guardarArticulo()">+ Guardar Artículo</button>
+                <p id="mensajeArticulo" class="mensaje"></p>
+            </div>
+
+            <table>
+                <thead>
+                    <tr><th>Descripción</th><th>Precio</th><th>Acción</th></tr>
+                </thead>
+                <tbody id="tabla-articulos"></tbody>
+            </table>
+        </div>
+
+        <!-- MÓDULO 2: PROMOCIONES -->
+        <div class="modulo" style="border-top: 5px solid #ffa502;">
+            <h2>⭐ Promociones</h2>
+
+            <div class="formulario">
+                <label>Nombre de la promo:</label>
+                <input type="text" id="nombrePromo" placeholder="Ej: Promo Fernet + 2 Cocas">
+
+                <label>Categoría:</label>
+                <input type="text" id="catPromo" placeholder="Ej: Bebidas">
+
+                <label>URL de la Imagen:</label>
+                <input type="text" id="imgPromo" placeholder="Ej: fernet.jpg o https://...">
+
+                <label>Precio ($):</label>
+                <input type="number" id="costoPromo" placeholder="Ej: 12000">
+
+                <button class="btn-guardar" style="background: #ffa502;" onclick="guardarPromocion()">+ Guardar Promo</button>
+                <p id="mensajePromo" class="mensaje"></p>
+            </div>
+
+            <table>
+                <thead>
+                    <tr><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Acción</th></tr>
+                </thead>
+                <tbody id="tabla-promos"></tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+        const urlArticulos = 'https://localhost:7111/api/Articulos';
+        const urlPromos = 'https://localhost:7111/api/Promos';
+
+        // ==========================================
+        // LÓGICA PARA ARTÍCULOS
+        // ==========================================
+        async function cargarArticulos() {
+            try {
+                const res = await fetch(urlArticulos);
+                const data = await res.json();
+                const tbody = document.getElementById('tabla-articulos');
+                tbody.innerHTML = '';
+                data.forEach(item => {
+                    const id = item.codArticulo || item.CodArticulo;
+                    tbody.innerHTML += `<tr><td><strong>${item.descripcion}</strong></td><td>$${item.costo}</td>
+                            <td><button class="btn-borrar" onclick="eliminarArticulo(${id})">🗑️ Borrar</button></td></tr>`;
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        async function guardarArticulo() {
+            const desc = document.getElementById('descArticulo').value;
+            const costo = document.getElementById('costoArticulo').value;
+            const msj = document.getElementById('mensajeArticulo');
+
+            if (!desc || !costo) { msj.innerText = "⚠️ Completá todo"; msj.style.color = "orange"; return; }
+
+            const obj = { descripcion: desc, costo: parseFloat(costo) };
+            try {
+                const res = await fetch(urlArticulos, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(obj) });
+                if (res.ok) {
+                    msj.innerText = "✅ ¡Guardado!"; msj.style.color = "green";
+                    document.getElementById('descArticulo').value = ""; document.getElementById('costoArticulo').value = "";
+                    cargarArticulos(); setTimeout(() => msj.innerText = "", 3000);
+                }
+            } catch (e) { msj.innerText = "❌ Error"; msj.style.color = "red"; }
+        }
+
+        async function eliminarArticulo(id) {
+            if (!confirm("¿Borrar artículo?")) return;
+            await fetch(`${urlArticulos}/${id}`, { method: 'DELETE' });
+            cargarArticulos();
+        }
+
+        // ==========================================
+        // LÓGICA PARA PROMOCIONES
+        // ==========================================
+        async function cargarPromociones() {
+            try {
+                const res = await fetch(urlPromos);
+                const data = await res.json();
+                const tbody = document.getElementById('tabla-promos');
+                tbody.innerHTML = '';
+                data.forEach(item => {
+                    const id = item.codPromocion || item.CodPromocion || item.id || item.Id;
+                    tbody.innerHTML += `<tr>
+                            <td><strong>${item.nombre}</strong></td>
+                            <td>${item.categoria}</td>
+                            <td>$${item.costo}</td>
+                            <td><button class="btn-borrar" onclick="eliminarPromocion(${id})">🗑️ Borrar</button></td>
+                        </tr>`;
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        async function guardarPromocion() {
+            const nombre = document.getElementById('nombrePromo').value;
+            const categoria = document.getElementById('catPromo').value;
+            const urlImagen = document.getElementById('imgPromo').value;
+            const costo = document.getElementById('costoPromo').value;
+            const msj = document.getElementById('mensajePromo');
+
+            if (!nombre || !categoria || !urlImagen || !costo) {
+                msj.innerText = "⚠️ Completá todos los campos";
+                msj.style.color = "orange";
+                return;
+            }
+
+            const obj = {
+                codPromocion: 0,
+                nombre: nombre,
+                categoria: categoria,
+                urlImagen: urlImagen,
+                costo: parseFloat(costo)
+            };
+
+            try {
+                const res = await fetch(urlPromos, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(obj)
+                });
+
+                if (res.ok) {
+                    msj.innerText = "✅ ¡Promo Guardada!";
+                    msj.style.color = "green";
+                    document.getElementById('nombrePromo').value = "";
+                    document.getElementById('catPromo').value = "";
+                    document.getElementById('imgPromo').value = "";
+                    document.getElementById('costoPromo').value = "";
+                    cargarPromociones();
+                    setTimeout(() => msj.innerText = "", 3000);
+                } else {
+                    msj.innerText = "❌ Error al guardar";
+                    msj.style.color = "red";
+                }
+            } catch (e) {
+                msj.innerText = "❌ Error de conexión";
+                msj.style.color = "red";
+            }
+        }
+
+        async function eliminarPromocion(id) {
+            if (!confirm("¿Borrar promoción?")) return;
+            await fetch(`${urlPromos}/${id}`, { method: 'DELETE' });
+            cargarPromociones();
+        }
+
+        // ==========================================
+        // INICIO
+        // ==========================================
+        window.onload = () => {
+            cargarArticulos();
+            cargarPromociones();
+        };
+    </script>
+</body>
+</html>

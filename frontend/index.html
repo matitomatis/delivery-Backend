@@ -6,7 +6,6 @@
     <title>Delivery App</title>
 
     <style>
-        /* CSS: Acá le damos color y forma (Mobile First) */
         body {
             font-family: sans-serif;
             margin: 0;
@@ -57,7 +56,6 @@
             cursor: pointer;
         }
 
-        /* CSS: Adaptación para pantallas grandes (Computadoras) */
         @media (min-width: 768px) {
             main {
                 max-width: 900px;
@@ -80,9 +78,7 @@
         }
     </style>
 </head>
-
 <body>
-    <!-- HTML: Acá está el esqueleto visual -->
     <header>
         <h2 style="margin: 0;">Menú Delivery</h2>
     </header>
@@ -95,11 +91,9 @@
         <span>🛒 Ver Carrito</span>
         <span id="total-carrito">$0</span>
     </div>
-    <!-- Ventana oculta de Checkout (Modal) -->
+
     <div id="ventana-checkout" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 1000; padding: 20px; box-sizing: border-box; overflow-y: auto;">
-
         <h2 style="color: #ff4757; margin-top: 0;">Confirmar Pedido</h2>
-
         <p><strong>Total a pagar: </strong><span id="total-confirmacion">$0</span></p>
 
         <label>Tu Nombre:</label><br>
@@ -121,37 +115,31 @@
         </select><br>
 
         <button onclick="enviarPedidoWhatsApp()" style="width: 100%; background: #2ed573; color: white; border: none; padding: 15px; border-radius: 5px; font-size: 1.1em; font-weight: bold; cursor: pointer; margin-bottom: 10px;">Enviar por WhatsApp</button>
-
         <button onclick="cerrarCarrito()" style="width: 100%; background: #ccc; color: black; border: none; padding: 15px; border-radius: 5px; font-size: 1.1em; font-weight: bold; cursor: pointer;">Volver al menú</button>
     </div>
 
-    <!-- JAVASCRIPT: Acá está el motorcito que suma la plata -->
     <script>
         async function cargarProductos() {
             try {
-                // Vamos a golpear la puerta de tu API
                 const respuesta = await fetch('https://localhost:7111/api/Articulos');
                 const productosBD = await respuesta.json();
 
                 const contenedor = document.getElementById('lista-productos');
-                contenedor.innerHTML = ''; // Borramos el texto de "Cargando..."
+                contenedor.innerHTML = '';
 
-                // Recorremos lo que nos devolvió la base de datos
                 productosBD.forEach(prod => {
-                    // NOTA: Acá uso prod.descripcion por el arreglo que hicimos antes. 
-                    // Si en tu base de datos quedó como "nombre", cambialo a prod.nombre.
+                    console.log("Producto recibido:", prod);
                     const textoProducto = prod.descripcion;
 
-                    // Dibujamos la tarjeta dinámica
                     contenedor.innerHTML += `
-                        <div class="producto">
-                            <div>
-                                <h3 style="margin: 0;">${textoProducto}</h3>
-                                <p class="precio">$${prod.precio}</p>
+                            <div class="producto">
+                                <div>
+                                    <h3 style="margin: 0;">${textoProducto}</h3>
+                                    <p class="precio">$${prod.costo}</p>
+                                </div>
+                                <button class="btn-agregar" onclick="agregarAlCarrito('${textoProducto}', ${prod.costo})">+ Agregar</button>
                             </div>
-                            <button class="btn-agregar" onclick="agregarAlCarrito('${textoProducto}', ${prod.precio})">+ Agregar</button>
-                        </div>
-                    `;
+                        `;
                 });
             } catch (error) {
                 console.error("Error conectando a la API:", error);
@@ -159,8 +147,8 @@
             }
         }
 
-        // Le decimos al navegador que ejecute esta función ni bien se abre la página
         window.onload = cargarProductos;
+
         let carrito = [];
         let total = 0;
 
@@ -170,7 +158,6 @@
             document.getElementById('total-carrito').innerText = '$' + total;
         }
 
-        // Abre la ventana blanca del formulario
         function abrirCarrito() {
             if (carrito.length === 0) {
                 alert("El carrito está vacío. ¡Agregá algo rico primero!");
@@ -180,30 +167,25 @@
             }
         }
 
-        // Cierra la ventana si el cliente se arrepiente
         function cerrarCarrito() {
             document.getElementById('ventana-checkout').style.display = 'none';
         }
 
-        // Arma el mensaje y abre WhatsApp
         function enviarPedidoWhatsApp() {
-            const numeroLocal = "5493510000000"; // Reemplazá por tu número real
+            const numeroLocal = "5493510000000";
             const nombre = document.getElementById('nombreCliente').value;
             const envio = document.getElementById('tipoEnvio').value;
             const direccion = document.getElementById('direccionCliente').value;
             const pago = document.getElementById('formaPago').value;
 
-            // Validamos que haya puesto su nombre
             if (nombre === "") {
                 alert("Por favor, ingresá tu nombre.");
                 return;
             }
 
-            // Armamos el texto del mensaje
             let mensaje = `¡Hola! Soy ${nombre}. Quiero hacer un pedido:\n\n`;
             mensaje += `🛒 *Mi Carrito:*\n`;
 
-            // Recorremos los productos que eligió
             for (let i = 0; i < carrito.length; i++) {
                 mensaje += `- ${carrito[i].nombre} ($${carrito[i].precio})\n`;
             }
@@ -215,7 +197,6 @@
             mensaje += `💵 *Forma de pago:* ${pago}\n`;
             mensaje += `💰 *Total:* $${total}\n`;
 
-            // Transformamos el texto y abrimos WhatsApp
             const urlWhatsApp = `https://wa.me/${numeroLocal}?text=${encodeURIComponent(mensaje)}`;
             window.open(urlWhatsApp, '_blank');
         }
