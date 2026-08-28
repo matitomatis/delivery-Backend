@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using delivery.DTOs;
+using System.Linq; // Necesario para el .Select()
 
 namespace delivery.Controllers
 {
@@ -26,13 +27,14 @@ namespace delivery.Controllers
             // Traemos los datos crudos
             var articulos = await _repository.GetAllAsync();
 
-            // Los traducimos al DTO seguro
+            // Los traducimos al DTO seguro (incluyendo la imagen)
             var articulosDto = articulos.Select(a => new ArticuloGetDTO
             {
                 CodArticulo = a.CodArticulo,
                 Descripcion = a.Descripcion,
                 Costo = a.Costo,
-                Stock = a.Stock
+                Stock = a.Stock,
+                UrlImagen = a.UrlImagen // <--- Agregado acá
             }).ToList();
 
             return Ok(articulosDto);
@@ -54,12 +56,13 @@ namespace delivery.Controllers
         [HttpPost]
         public async Task<ActionResult> Post(ArticuloCreateDTO articuloDto)
         {
-            // Armamos la Entidad real usando los datos del formulario DTO
+            // Armamos la Entidad real usando los datos del formulario DTO (incluyendo la foto)
             var nuevoArticulo = new Articulo
             {
                 Descripcion = articuloDto.Descripcion,
                 Costo = articuloDto.Costo,
-                Stock = articuloDto.Stock
+                Stock = articuloDto.Stock,
+                UrlImagen = articuloDto.UrlImagen // <--- Agregado acá
             };
 
             // La mandamos a guardar

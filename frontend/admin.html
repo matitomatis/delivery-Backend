@@ -158,8 +158,13 @@
             <div class="formulario">
                 <label>Descripción del artículo:</label>
                 <input type="text" id="descArticulo" placeholder="Ej: Hamburguesa Simple">
+
+                <label>Subir Foto:</label>
+                <input type="file" id="imgArticulo" accept="image/*">
+
                 <label>Precio ($):</label>
                 <input type="number" id="costoArticulo" placeholder="Ej: 4500">
+
                 <button class="btn-guardar" onclick="guardarArticulo()">+ Guardar Artículo</button>
                 <p id="mensajeArticulo" class="mensaje"></p>
             </div>
@@ -183,8 +188,8 @@
                 <label>Categoría:</label>
                 <input type="text" id="catPromo" placeholder="Ej: Bebidas">
 
-                <label>URL de la Imagen:</label>
-                <input type="text" id="imgPromo" placeholder="Ej: fernet.jpg o https://...">
+                <label>Subir Foto:</label>
+                <input type="file" id="imgPromo" accept="image/*">
 
                 <label>Precio ($):</label>
                 <input type="number" id="costoPromo" placeholder="Ej: 12000">
@@ -208,6 +213,21 @@
         const urlPromos = 'https://localhost:7111/api/Promos';
 
         // ==========================================
+        // FUNCIÓN PARA CONVERTIR IMAGEN
+        // ==========================================
+        function leerFoto(input) {
+            return new Promise((resolve) => {
+                if (!input.files || input.files.length === 0) {
+                    resolve("");
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(input.files[0]);
+            });
+        }
+
+        // ==========================================
         // LÓGICA PARA ARTÍCULOS
         // ==========================================
         async function cargarArticulos() {
@@ -218,8 +238,11 @@
                 tbody.innerHTML = '';
                 data.forEach(item => {
                     const id = item.codArticulo || item.CodArticulo;
-                    tbody.innerHTML += `<tr><td><strong>${item.descripcion}</strong></td><td>$${item.costo}</td>
-                            <td><button class="btn-borrar" onclick="eliminarArticulo(${id})">🗑️ Borrar</button></td></tr>`;
+                    tbody.innerHTML += `<tr>
+                                <td><strong>${item.descripcion}</strong></td>
+                                <td>$${item.costo}</td>
+                                <td><button class="btn-borrar" onclick="eliminarArticulo(${id})">🗑️ Borrar</button></td>
+                            </tr>`;
                 });
             } catch (e) { console.error(e); }
         }
@@ -227,19 +250,50 @@
         async function guardarArticulo() {
             const desc = document.getElementById('descArticulo').value;
             const costo = document.getElementById('costoArticulo').value;
+            const inputImg = document.getElementById('imgArticulo');
             const msj = document.getElementById('mensajeArticulo');
 
-            if (!desc || !costo) { msj.innerText = "⚠️ Completá todo"; msj.style.color = "orange"; return; }
+            if (!desc || !costo) {
+                msj.innerText = "⚠️ Completá nombre y precio";
+                msj.style.color = "orange";
+                return;
+            }
 
-            const obj = { descripcion: desc, costo: parseFloat(costo) };
+            const fotoBase64 = await leerFoto(inputImg);
+
+            // Se agregan stock y stockMinimo para que SQL Server no rechace el INSERT
+            const obj = {
+                codArticulo: 0,
+                descripcion: desc,
+                urlImagen: fotoBase64,
+                costo: parseFloat(costo),
+                stock: 0,
+                stockMinimo: 0
+            };
+
             try {
-                const res = await fetch(urlArticulos, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(obj) });
+                const res = await fetch(urlArticulos, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(obj)
+                });
+
                 if (res.ok) {
-                    msj.innerText = "✅ ¡Guardado!"; msj.style.color = "green";
-                    document.getElementById('descArticulo').value = ""; document.getElementById('costoArticulo').value = "";
-                    cargarArticulos(); setTimeout(() => msj.innerText = "", 3000);
+                    msj.innerText = "✅ ¡Guardado!";
+                    msj.style.color = "green";
+                    document.getElementById('descArticulo').value = "";
+                    document.getElementById('imgArticulo').value = "";
+                    document.getElementById('costoArticulo').value = "";
+                    cargarArticulos();
+                    setTimeout(() => msj.innerText = "", 3000);
+                } else {
+                    msj.innerText = "❌ Error al guardar";
+                    msj.style.color = "red";
                 }
-            } catch (e) { msj.innerText = "❌ Error"; msj.style.color = "red"; }
+            } catch (e) {
+                msj.innerText = "❌ Error";
+                msj.style.color = "red";
+            }
         }
 
         async function eliminarArticulo(id) {
@@ -258,13 +312,13 @@
                 const tbody = document.getElementById('tabla-promos');
                 tbody.innerHTML = '';
                 data.forEach(item => {
-                    const id = item.codPromocion || item.CodPromocion || item.id || item.Id;
+                    const id = item.codPromo || item.CodPromo;
                     tbody.innerHTML += `<tr>
-                            <td><strong>${item.nombre}</strong></td>
-                            <td>${item.categoria}</td>
-                            <td>$${item.costo}</td>
-                            <td><button class="btn-borrar" onclick="eliminarPromocion(${id})">🗑️ Borrar</button></td>
-                        </tr>`;
+                                    <td><strong>${item.nombre}</strong></td>
+                                    <td>${item.categoria}</td>
+                                    <td>$${item.precioVenta}</td>
+                                    <td><button class="btn-borrar" onclick="eliminarPromocion(${id})">🗑️ Borrar</button></td>
+                                </tr>`;
                 });
             } catch (e) { console.error(e); }
         }
@@ -272,22 +326,26 @@
         async function guardarPromocion() {
             const nombre = document.getElementById('nombrePromo').value;
             const categoria = document.getElementById('catPromo').value;
-            const urlImagen = document.getElementById('imgPromo').value;
             const costo = document.getElementById('costoPromo').value;
+            const inputImg = document.getElementById('imgPromo');
             const msj = document.getElementById('mensajePromo');
 
-            if (!nombre || !categoria || !urlImagen || !costo) {
-                msj.innerText = "⚠️ Completá todos los campos";
+            if (!nombre || !categoria || !costo) {
+                msj.innerText = "⚠️ Completá nombre, categoría y precio";
                 msj.style.color = "orange";
                 return;
             }
 
+            const fotoBase64 = await leerFoto(inputImg);
+
             const obj = {
-                codPromocion: 0,
+                codPromo: 0,
                 nombre: nombre,
+                descripcion: "",
                 categoria: categoria,
-                urlImagen: urlImagen,
-                costo: parseFloat(costo)
+                urlImagen: fotoBase64,
+                precioVenta: parseFloat(costo),
+                activa: true
             };
 
             try {

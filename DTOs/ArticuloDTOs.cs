@@ -7,6 +7,7 @@
         public string Descripcion { get; set; } = string.Empty;
         public decimal Costo { get; set; }
         public short Stock { get; set; }
+        public string? UrlImagen { get; set; }
     }
 
     // El formato que le pedimos al usuario para crear uno nuevo (¡sin el ID!)
@@ -15,5 +16,6 @@
         public string Descripcion { get; set; } = string.Empty;
         public decimal Costo { get; set; }
         public short Stock { get; set; }
+        public string? UrlImagen { get; set; }
     }
 }
