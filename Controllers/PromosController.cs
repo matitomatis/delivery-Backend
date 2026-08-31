@@ -3,6 +3,8 @@ using delivery.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
+using delivery.DTOs;
 
 namespace delivery.Controllers
 {
@@ -32,9 +34,26 @@ namespace delivery.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> GuardarPromo(Promo promo)
+        public async Task<ActionResult> GuardarPromo(PromoCreateDTO promoDto)
         {
-            await _repository.SaveAsync(promo);
+            var nuevaPromo = new Promo
+            {
+                Nombre = promoDto.Nombre,
+                Descripcion = promoDto.Descripcion,
+                Categoria = promoDto.Categoria,
+                UrlImagen = promoDto.UrlImagen,
+                PrecioVenta = promoDto.PrecioVenta,
+                Activa = true,
+
+                // Mapeamos los artículos elegidos en el front hacia la tabla detalle_promos
+                DetallePromos = promoDto.Articulos.Select(a => new DetallePromo
+                {
+                    CodArticulo = a.CodArticulo,
+                    Cantidad = a.Cantidad
+                }).ToList()
+            };
+
+            await _repository.SaveAsync(nuevaPromo);
             return Ok();
         }
 

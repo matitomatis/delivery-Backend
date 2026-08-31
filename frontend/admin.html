@@ -140,6 +140,31 @@
             .btn-borrar:hover {
                 background: #e03e4d;
             }
+
+        /* Estilos para la lista de artículos en la promo */
+        .caja-articulos {
+            background: white;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 5px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .fila-articulo-promo {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f1f2f6;
+            padding: 5px 0;
+        }
+
+            .fila-articulo-promo input {
+                width: 60px;
+                margin: 0;
+                padding: 5px;
+            }
     </style>
 </head>
 <body>
@@ -151,28 +176,21 @@
 
     <div class="dashboard">
 
-        <!-- MÓDULO 1: ARTÍCULOS INDIVIDUALES -->
+        <!-- MÓDULO 1: ARTÍCULOS -->
         <div class="modulo">
             <h2>🍔 Artículos</h2>
-
             <div class="formulario">
                 <label>Descripción del artículo:</label>
                 <input type="text" id="descArticulo" placeholder="Ej: Hamburguesa Simple">
-
                 <label>Subir Foto:</label>
                 <input type="file" id="imgArticulo" accept="image/*">
-
                 <label>Precio ($):</label>
                 <input type="number" id="costoArticulo" placeholder="Ej: 4500">
-
                 <button class="btn-guardar" onclick="guardarArticulo()">+ Guardar Artículo</button>
                 <p id="mensajeArticulo" class="mensaje"></p>
             </div>
-
             <table>
-                <thead>
-                    <tr><th>Descripción</th><th>Precio</th><th>Acción</th></tr>
-                </thead>
+                <thead><tr><th>Descripción</th><th>Precio</th><th>Acción</th></tr></thead>
                 <tbody id="tabla-articulos"></tbody>
             </table>
         </div>
@@ -180,28 +198,26 @@
         <!-- MÓDULO 2: PROMOCIONES -->
         <div class="modulo" style="border-top: 5px solid #ffa502;">
             <h2>⭐ Promociones</h2>
-
             <div class="formulario">
                 <label>Nombre de la promo:</label>
                 <input type="text" id="nombrePromo" placeholder="Ej: Promo Fernet + 2 Cocas">
-
                 <label>Categoría:</label>
                 <input type="text" id="catPromo" placeholder="Ej: Bebidas">
-
                 <label>Subir Foto:</label>
                 <input type="file" id="imgPromo" accept="image/*">
-
-                <label>Precio ($):</label>
+                <label>Precio Final ($):</label>
                 <input type="number" id="costoPromo" placeholder="Ej: 12000">
+
+                <label>Armar Combo (Elegí cantidades):</label>
+                <div class="caja-articulos" id="lista-articulos-promo">
+                    <!-- Se llena con JS -->
+                </div>
 
                 <button class="btn-guardar" style="background: #ffa502;" onclick="guardarPromocion()">+ Guardar Promo</button>
                 <p id="mensajePromo" class="mensaje"></p>
             </div>
-
             <table>
-                <thead>
-                    <tr><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Acción</th></tr>
-                </thead>
+                <thead><tr><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Acción</th></tr></thead>
                 <tbody id="tabla-promos"></tbody>
             </table>
         </div>
@@ -212,37 +228,42 @@
         const urlArticulos = 'https://localhost:7111/api/Articulos';
         const urlPromos = 'https://localhost:7111/api/Promos';
 
-        // ==========================================
-        // FUNCIÓN PARA CONVERTIR IMAGEN
-        // ==========================================
         function leerFoto(input) {
             return new Promise((resolve) => {
-                if (!input.files || input.files.length === 0) {
-                    resolve("");
-                    return;
-                }
+                if (!input.files || input.files.length === 0) { resolve(""); return; }
                 const reader = new FileReader();
                 reader.onload = (e) => resolve(e.target.result);
                 reader.readAsDataURL(input.files[0]);
             });
         }
 
-        // ==========================================
-        // LÓGICA PARA ARTÍCULOS
-        // ==========================================
         async function cargarArticulos() {
             try {
                 const res = await fetch(urlArticulos);
                 const data = await res.json();
+
                 const tbody = document.getElementById('tabla-articulos');
+                const cajaPromos = document.getElementById('lista-articulos-promo');
+
                 tbody.innerHTML = '';
+                cajaPromos.innerHTML = '';
+
                 data.forEach(item => {
                     const id = item.codArticulo || item.CodArticulo;
+
+                    // Llena tabla normal
                     tbody.innerHTML += `<tr>
                                 <td><strong>${item.descripcion}</strong></td>
                                 <td>$${item.costo}</td>
                                 <td><button class="btn-borrar" onclick="eliminarArticulo(${id})">🗑️ Borrar</button></td>
                             </tr>`;
+
+                    // Llena la cajita de las promos
+                    cajaPromos.innerHTML += `
+                            <div class="fila-articulo-promo">
+                                <span>${item.descripcion}</span>
+                                <input type="number" min="0" value="0" data-id="${id}" class="cant-articulo-promo">
+                            </div>`;
                 });
             } catch (e) { console.error(e); }
         }
@@ -254,46 +275,21 @@
             const msj = document.getElementById('mensajeArticulo');
 
             if (!desc || !costo) {
-                msj.innerText = "⚠️ Completá nombre y precio";
-                msj.style.color = "orange";
-                return;
+                msj.innerText = "⚠️ Completá nombre y precio"; msj.style.color = "orange"; return;
             }
 
             const fotoBase64 = await leerFoto(inputImg);
-
-            // Se agregan stock y stockMinimo para que SQL Server no rechace el INSERT
-            const obj = {
-                codArticulo: 0,
-                descripcion: desc,
-                urlImagen: fotoBase64,
-                costo: parseFloat(costo),
-                stock: 0,
-                stockMinimo: 0
-            };
+            const obj = { codArticulo: 0, descripcion: desc, urlImagen: fotoBase64, costo: parseFloat(costo), stock: 0, stockMinimo: 0 };
 
             try {
-                const res = await fetch(urlArticulos, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(obj)
-                });
-
+                const res = await fetch(urlArticulos, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(obj) });
                 if (res.ok) {
-                    msj.innerText = "✅ ¡Guardado!";
-                    msj.style.color = "green";
-                    document.getElementById('descArticulo').value = "";
-                    document.getElementById('imgArticulo').value = "";
-                    document.getElementById('costoArticulo').value = "";
+                    msj.innerText = "✅ ¡Guardado!"; msj.style.color = "green";
+                    document.getElementById('descArticulo').value = ""; document.getElementById('imgArticulo').value = ""; document.getElementById('costoArticulo').value = "";
                     cargarArticulos();
                     setTimeout(() => msj.innerText = "", 3000);
-                } else {
-                    msj.innerText = "❌ Error al guardar";
-                    msj.style.color = "red";
-                }
-            } catch (e) {
-                msj.innerText = "❌ Error";
-                msj.style.color = "red";
-            }
+                } else { msj.innerText = "❌ Error al guardar"; msj.style.color = "red"; }
+            } catch (e) { msj.innerText = "❌ Error"; msj.style.color = "red"; }
         }
 
         async function eliminarArticulo(id) {
@@ -302,9 +298,6 @@
             cargarArticulos();
         }
 
-        // ==========================================
-        // LÓGICA PARA PROMOCIONES
-        // ==========================================
         async function cargarPromociones() {
             try {
                 const res = await fetch(urlPromos);
@@ -331,21 +324,37 @@
             const msj = document.getElementById('mensajePromo');
 
             if (!nombre || !categoria || !costo) {
-                msj.innerText = "⚠️ Completá nombre, categoría y precio";
-                msj.style.color = "orange";
-                return;
+                msj.innerText = "⚠️ Completá nombre, categoría y precio"; msj.style.color = "orange"; return;
+            }
+
+            // Recolectar artículos seleccionados
+            const inputsCantidades = document.querySelectorAll('.cant-articulo-promo');
+            const articulosSeleccionados = [];
+
+            inputsCantidades.forEach(input => {
+                const cantidad = parseInt(input.value);
+                if (cantidad > 0) {
+                    articulosSeleccionados.push({
+                        codArticulo: parseInt(input.getAttribute('data-id')),
+                        cantidad: cantidad
+                    });
+                }
+            });
+
+            if (articulosSeleccionados.length === 0) {
+                msj.innerText = "⚠️ Seleccioná al menos 1 artículo para armar la promo"; msj.style.color = "orange"; return;
             }
 
             const fotoBase64 = await leerFoto(inputImg);
 
+            // Objeto que matchea exacto con PromoCreateDTO de C#
             const obj = {
-                codPromo: 0,
                 nombre: nombre,
                 descripcion: "",
                 categoria: categoria,
                 urlImagen: fotoBase64,
                 precioVenta: parseFloat(costo),
-                activa: true
+                articulos: articulosSeleccionados
             };
 
             try {
@@ -356,22 +365,18 @@
                 });
 
                 if (res.ok) {
-                    msj.innerText = "✅ ¡Promo Guardada!";
-                    msj.style.color = "green";
-                    document.getElementById('nombrePromo').value = "";
-                    document.getElementById('catPromo').value = "";
-                    document.getElementById('imgPromo').value = "";
-                    document.getElementById('costoPromo').value = "";
+                    msj.innerText = "✅ ¡Promo Guardada!"; msj.style.color = "green";
+                    document.getElementById('nombrePromo').value = ""; document.getElementById('catPromo').value = ""; document.getElementById('imgPromo').value = ""; document.getElementById('costoPromo').value = "";
+
+                    // Resetear las cantidades a 0
+                    document.querySelectorAll('.cant-articulo-promo').forEach(input => input.value = 0);
+
                     cargarPromociones();
                     setTimeout(() => msj.innerText = "", 3000);
                 } else {
-                    msj.innerText = "❌ Error al guardar";
-                    msj.style.color = "red";
+                    msj.innerText = "❌ Error al guardar"; msj.style.color = "red";
                 }
-            } catch (e) {
-                msj.innerText = "❌ Error de conexión";
-                msj.style.color = "red";
-            }
+            } catch (e) { msj.innerText = "❌ Error de conexión"; msj.style.color = "red"; }
         }
 
         async function eliminarPromocion(id) {
@@ -380,9 +385,6 @@
             cargarPromociones();
         }
 
-        // ==========================================
-        // INICIO
-        // ==========================================
         window.onload = () => {
             cargarArticulos();
             cargarPromociones();
