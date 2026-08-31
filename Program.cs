@@ -7,7 +7,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        b => b.MigrationsAssembly("delivery")
+        b => b.MigrationsAssembly("delivery.Data")
     )
 );
 builder.Services.AddScoped<IArticuloRepository, ArticuloRepository>();
