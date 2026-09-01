@@ -3,152 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Delivery</title>
+    <title>Dashboard Admin - La Dolce</title>
     <style>
         :root {
-            --primary: #2f3542;
-            --accent: #ff4757;
-            --success: #2ed573;
+            --primary: #fa0050;
+            --sidebar-bg: #2f3542;
             --bg: #f1f2f6;
             --card-bg: #ffffff;
+            --text-main: #333333;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
             background-color: var(--bg);
             margin: 0;
-            padding: 20px;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: var(--sidebar-bg);
+            color: white;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+            .sidebar h2 {
+                text-align: center;
+                margin-bottom: 30px;
+                border-bottom: 1px solid #4a5468;
+                padding-bottom: 15px;
+                font-size: 1.5rem;
+            }
+
+        .nav-item {
+            padding: 15px 25px;
+            color: #ced6e0;
+            text-decoration: none;
+            font-weight: bold;
+            display: block;
+            border-left: 4px solid transparent;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+
+            .nav-item:hover, .nav-item.active {
+                background: #4a5468;
+                border-left-color: var(--primary);
+                color: white;
+            }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 30px;
+            overflow-y: auto;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .header {
-            background: var(--primary);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 30px;
         }
 
             .header h1 {
                 margin: 0;
-                font-size: 1.5rem;
+                color: var(--text-main);
             }
 
-        .dashboard {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
+        .btn-publico {
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
         }
 
-        @media (min-width: 1024px) {
-            .dashboard {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        .modulo {
+        .card {
             background: var(--card-bg);
             padding: 25px;
-            border-radius: 10px;
+            border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            max-width: 800px;
+            margin-bottom: 20px;
         }
 
-            .modulo h2 {
+            .card h3 {
                 margin-top: 0;
+                color: var(--primary);
                 border-bottom: 2px solid var(--bg);
                 padding-bottom: 10px;
-                color: var(--primary);
             }
 
-        .formulario {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+        .form-group {
+            margin-bottom: 15px;
         }
 
         label {
             font-weight: bold;
             display: block;
-            margin-top: 10px;
+            margin-bottom: 5px;
             color: #57606f;
             font-size: 0.9em;
         }
 
-        input {
+        input, select {
             width: 100%;
             padding: 10px;
-            margin-top: 5px;
             border: 1px solid #ced4da;
-            border-radius: 5px;
+            border-radius: 6px;
             box-sizing: border-box;
         }
 
         .btn-guardar {
             width: 100%;
             padding: 12px;
-            margin-top: 15px;
-            background: var(--success);
+            background: #2ed573;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 6px;
             font-weight: bold;
             cursor: pointer;
+            font-size: 1rem;
+            margin-top: 10px;
         }
 
             .btn-guardar:hover {
                 background: #26b963;
             }
 
-        .mensaje {
-            text-align: center;
-            margin-top: 10px;
-            font-weight: bold;
-            min-height: 20px;
-            font-size: 0.9em;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            text-align: left;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            font-size: 0.95em;
-        }
-
-        th {
-            background: var(--bg);
-            color: var(--primary);
-        }
-
-        .btn-borrar {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85em;
-        }
-
-            .btn-borrar:hover {
-                background: #e03e4d;
-            }
-
-        /* Estilos para la lista de artículos en la promo */
         .caja-articulos {
-            background: white;
+            background: #f8f9fa;
             border: 1px solid #ced4da;
-            border-radius: 5px;
+            border-radius: 6px;
             padding: 10px;
-            margin-top: 5px;
-            max-height: 150px;
+            max-height: 180px;
             overflow-y: auto;
         }
 
@@ -156,78 +151,243 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #f1f2f6;
-            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+            padding: 8px 0;
         }
 
             .fila-articulo-promo input {
-                width: 60px;
+                width: 70px;
                 margin: 0;
                 padding: 5px;
+                text-align: center;
             }
+
+        .tabla-container {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 500px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.95em;
+        }
+
+        th {
+            background: var(--bg);
+            color: var(--sidebar-bg);
+        }
+
+        .btn-borrar {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+        }
+
+        /* Vistas ocultas por defecto */
+        .vista-seccion {
+            display: none;
+        }
+
+            .vista-seccion.activa {
+                display: block;
+            }
+
+        @media (max-width: 900px) {
+            body {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                flex-direction: row;
+                padding: 10px 0;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+                .sidebar h2 {
+                    display: none;
+                }
+
+            .nav-item {
+                display: inline-block;
+                padding: 10px 15px;
+                border-left: none;
+                border-bottom: 4px solid transparent;
+            }
+
+                .nav-item:hover, .nav-item.active {
+                    border-left: none;
+                    border-bottom-color: var(--primary);
+                }
+
+            .main-content {
+                padding: 15px;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>⚙️ Panel de Administración Full</h1>
-        <a href="index.html" style="color: white; text-decoration: none; background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 5px;">Ir al menú público ➔</a>
+    <div class="sidebar">
+        <h2>🍰 La Dolce Admin</h2>
+        <a class="nav-item active" onclick="cambiarVista('vista-productos', this)">📦 Productos</a>
+        <a class="nav-item" onclick="cambiarVista('vista-promos', this)">⭐ Promociones</a>
+        <a class="nav-item" onclick="cambiarVista('vista-categorias', this)">🏷️ Categorías</a>
+        <a class="nav-item" onclick="cambiarVista('vista-banners', this)">🖼️ Banners</a>
     </div>
 
-    <div class="dashboard">
-
-        <!-- MÓDULO 1: ARTÍCULOS -->
-        <div class="modulo">
-            <h2>🍔 Artículos</h2>
-            <div class="formulario">
-                <label>Descripción del artículo:</label>
-                <input type="text" id="descArticulo" placeholder="Ej: Hamburguesa Simple">
-                <label>Subir Foto:</label>
-                <input type="file" id="imgArticulo" accept="image/*">
-                <label>Precio ($):</label>
-                <input type="number" id="costoArticulo" placeholder="Ej: 4500">
-                <button class="btn-guardar" onclick="guardarArticulo()">+ Guardar Artículo</button>
-                <p id="mensajeArticulo" class="mensaje"></p>
-            </div>
-            <table>
-                <thead><tr><th>Descripción</th><th>Precio</th><th>Acción</th></tr></thead>
-                <tbody id="tabla-articulos"></tbody>
-            </table>
+    <div class="main-content">
+        <div class="header">
+            <h1 id="titulo-seccion">Productos Individuales</h1>
+            <a href="index.html" class="btn-publico">Ver Menú Público ➔</a>
         </div>
 
-        <!-- MÓDULO 2: PROMOCIONES -->
-        <div class="modulo" style="border-top: 5px solid #ffa502;">
-            <h2>⭐ Promociones</h2>
-            <div class="formulario">
-                <label>Nombre de la promo:</label>
-                <input type="text" id="nombrePromo" placeholder="Ej: Promo Fernet + 2 Cocas">
-                <label>Categoría:</label>
-                <input type="text" id="catPromo" placeholder="Ej: Bebidas">
-                <label>Subir Foto:</label>
-                <input type="file" id="imgPromo" accept="image/*">
-                <label>Precio Final ($):</label>
-                <input type="number" id="costoPromo" placeholder="Ej: 12000">
+        <!-- SECCIÓN 1: PRODUCTOS -->
+        <div id="vista-productos" class="vista-seccion activa">
+            <div class="card">
+                <h3>🍰 Cargar Producto Individual</h3>
+                <div class="form-group">
+                    <label>Nombre del postre/artículo:</label>
+                    <input type="text" id="descArticulo" placeholder="Ej: Porción Lemon Pie">
+                </div>
+                <div class="form-group">
+                    <label>Precio de venta ($):</label>
+                    <input type="number" id="costoArticulo" placeholder="Ej: 4200">
+                </div>
+                <div class="form-group">
+                    <label>Subir Foto:</label>
+                    <input type="file" id="imgArticulo" accept="image/*">
+                </div>
+                <button class="btn-guardar" onclick="guardarArticulo()">Guardar Producto</button>
+                <p id="mensajeArticulo" style="text-align:center; font-weight:bold; margin-top:10px; min-height: 20px;"></p>
 
-                <label>Armar Combo (Elegí cantidades):</label>
-                <div class="caja-articulos" id="lista-articulos-promo">
-                    <!-- Se llena con JS -->
+                <div class="tabla-container">
+                    <table>
+                        <thead><tr><th>Descripción</th><th>Precio</th><th>Acción</th></tr></thead>
+                        <tbody id="tabla-articulos"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 2: PROMOCIONES -->
+        <div id="vista-promos" class="vista-seccion">
+            <div class="card" style="border-top: 4px solid var(--primary);">
+                <h3>⭐ Armar Combo / Promoción</h3>
+                <div class="form-group">
+                    <label>Nombre del Combo:</label>
+                    <input type="text" id="nombrePromo" placeholder="Ej: Box 4 Porciones">
+                </div>
+                <div class="form-group">
+                    <label>Precio Final del Combo ($):</label>
+                    <input type="number" id="costoPromo" placeholder="Ej: 15000">
+                </div>
+                <div class="form-group">
+                    <label>Subir Foto del Combo:</label>
+                    <input type="file" id="imgPromo" accept="image/*">
                 </div>
 
-                <button class="btn-guardar" style="background: #ffa502;" onclick="guardarPromocion()">+ Guardar Promo</button>
-                <p id="mensajePromo" class="mensaje"></p>
+                <div class="form-group">
+                    <label>Armar el contenido (Indicá cantidades):</label>
+                    <div class="caja-articulos" id="lista-articulos-promo"></div>
+                </div>
+
+                <button class="btn-guardar" style="background: var(--primary);" onclick="guardarPromocion()">Guardar Promoción</button>
+                <p id="mensajePromo" style="text-align:center; font-weight:bold; margin-top:10px; min-height: 20px;"></p>
+
+                <div class="tabla-container">
+                    <table>
+                        <thead><tr><th>Nombre</th><th>Precio</th><th>Acción</th></tr></thead>
+                        <tbody id="tabla-promos"></tbody>
+                    </table>
+                </div>
             </div>
-            <table>
-                <thead><tr><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Acción</th></tr></thead>
-                <tbody id="tabla-promos"></tbody>
-            </table>
         </div>
 
+        <!-- SECCIÓN 3: CATEGORÍAS -->
+        <div id="vista-categorias" class="vista-seccion">
+            <div class="card">
+                <h3>🏷️ Gestión de Categorías</h3>
+                <div class="form-group">
+                    <label>Nombre de la Categoría:</label>
+                    <input type="text" id="nombreCategoria" placeholder="Ej: Tortas Enteras">
+                </div>
+                <button class="btn-guardar" onclick="guardarCategoria()">Guardar Categoría</button>
+                <p id="mensajeCategoria" style="text-align:center; font-weight:bold; margin-top:10px; min-height: 20px;"></p>
+
+                <div class="tabla-container">
+                    <table>
+                        <thead><tr><th>Nombre</th><th>Acción</th></tr></thead>
+                        <tbody id="tabla-categorias"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 4: BANNERS -->
+        <div id="vista-banners" class="vista-seccion">
+            <div class="card">
+                <h3>🖼️ Gestión de Banners</h3>
+                <div class="form-group">
+                    <label>Título Principal:</label>
+                    <input type="text" id="tituloBanner" placeholder="Ej: 20% OFF">
+                </div>
+                <div class="form-group">
+                    <label>Subtítulo:</label>
+                    <input type="text" id="subtituloBanner" placeholder="Ej: en Chocotortas">
+                </div>
+                <div class="form-group">
+                    <label>Color de Fondo (Hacé clic para elegir):</label>
+                    <input type="color" id="colorBanner" value="#fa0050" style="height: 45px; padding: 2px; cursor: pointer;">
+                </div>
+                <button class="btn-guardar" onclick="guardarBanner()">Guardar Banner</button>
+                <p id="mensajeBanner" style="text-align:center; font-weight:bold; margin-top:10px; min-height: 20px;"></p>
+
+                <div class="tabla-container">
+                    <table>
+                        <thead><tr><th>Banner</th><th>Color</th><th>Acción</th></tr></thead>
+                        <tbody id="tabla-banners"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
         const urlArticulos = 'https://localhost:7111/api/Articulos';
         const urlPromos = 'https://localhost:7111/api/Promos';
+        const urlCategorias = 'https://localhost:7111/api/Categorias';
+        const urlBanners = 'https://localhost:7111/api/Banners';
 
+        // --- LÓGICA DE NAVEGACIÓN ---
+        function cambiarVista(idVista, elementoMenu) {
+            const vistas = document.querySelectorAll('.vista-seccion');
+            vistas.forEach(vista => vista.classList.remove('activa'));
+
+            document.getElementById(idVista).classList.add('activa');
+
+            const botones = document.querySelectorAll('.nav-item');
+            botones.forEach(btn => btn.classList.remove('active'));
+            elementoMenu.classList.add('active');
+
+            document.getElementById('titulo-seccion').innerText = elementoMenu.innerText.substring(3);
+        }
+
+        // --- UTILIDAD FOTOS ---
         function leerFoto(input) {
             return new Promise((resolve) => {
                 if (!input.files || input.files.length === 0) { resolve(""); return; }
@@ -237,6 +397,7 @@
             });
         }
 
+        // --- LÓGICA ARTÍCULOS ---
         async function cargarArticulos() {
             try {
                 const res = await fetch(urlArticulos);
@@ -250,22 +411,19 @@
 
                 data.forEach(item => {
                     const id = item.codArticulo || item.CodArticulo;
-
-                    // Llena tabla normal
                     tbody.innerHTML += `<tr>
-                                <td><strong>${item.descripcion}</strong></td>
-                                <td>$${item.costo}</td>
-                                <td><button class="btn-borrar" onclick="eliminarArticulo(${id})">🗑️ Borrar</button></td>
-                            </tr>`;
+                            <td><strong>${item.descripcion}</strong></td>
+                            <td>$${item.costo}</td>
+                            <td><button class="btn-borrar" onclick="eliminarArticulo(${id})">Borrar</button></td>
+                        </tr>`;
 
-                    // Llena la cajita de las promos
                     cajaPromos.innerHTML += `
                             <div class="fila-articulo-promo">
                                 <span>${item.descripcion}</span>
                                 <input type="number" min="0" value="0" data-id="${id}" class="cant-articulo-promo">
                             </div>`;
                 });
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error("Error al cargar artículos", e); }
         }
 
         async function guardarArticulo() {
@@ -274,9 +432,7 @@
             const inputImg = document.getElementById('imgArticulo');
             const msj = document.getElementById('mensajeArticulo');
 
-            if (!desc || !costo) {
-                msj.innerText = "⚠️ Completá nombre y precio"; msj.style.color = "orange"; return;
-            }
+            if (!desc || !costo) { msj.innerText = "⚠️ Completá nombre y precio"; msj.style.color = "orange"; return; }
 
             const fotoBase64 = await leerFoto(inputImg);
             const obj = { codArticulo: 0, descripcion: desc, urlImagen: fotoBase64, costo: parseFloat(costo), stock: 0, stockMinimo: 0 };
@@ -284,20 +440,21 @@
             try {
                 const res = await fetch(urlArticulos, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(obj) });
                 if (res.ok) {
-                    msj.innerText = "✅ ¡Guardado!"; msj.style.color = "green";
-                    document.getElementById('descArticulo').value = ""; document.getElementById('imgArticulo').value = ""; document.getElementById('costoArticulo').value = "";
+                    msj.innerText = "✅ Producto Guardado"; msj.style.color = "green";
+                    document.getElementById('descArticulo').value = ""; document.getElementById('costoArticulo').value = ""; document.getElementById('imgArticulo').value = "";
                     cargarArticulos();
                     setTimeout(() => msj.innerText = "", 3000);
-                } else { msj.innerText = "❌ Error al guardar"; msj.style.color = "red"; }
+                }
             } catch (e) { msj.innerText = "❌ Error"; msj.style.color = "red"; }
         }
 
         async function eliminarArticulo(id) {
-            if (!confirm("¿Borrar artículo?")) return;
+            if (!confirm("¿Borrar producto?")) return;
             await fetch(`${urlArticulos}/${id}`, { method: 'DELETE' });
             cargarArticulos();
         }
 
+        // --- LÓGICA PROMOCIONES ---
         async function cargarPromociones() {
             try {
                 const res = await fetch(urlPromos);
@@ -307,74 +464,45 @@
                 data.forEach(item => {
                     const id = item.codPromo || item.CodPromo;
                     tbody.innerHTML += `<tr>
-                                    <td><strong>${item.nombre}</strong></td>
-                                    <td>${item.categoria}</td>
-                                    <td>$${item.precioVenta}</td>
-                                    <td><button class="btn-borrar" onclick="eliminarPromocion(${id})">🗑️ Borrar</button></td>
-                                </tr>`;
+                            <td><strong>${item.nombre}</strong></td>
+                            <td>$${item.precioVenta}</td>
+                            <td><button class="btn-borrar" onclick="eliminarPromocion(${id})">Borrar</button></td>
+                        </tr>`;
                 });
             } catch (e) { console.error(e); }
         }
 
         async function guardarPromocion() {
             const nombre = document.getElementById('nombrePromo').value;
-            const categoria = document.getElementById('catPromo').value;
             const costo = document.getElementById('costoPromo').value;
             const inputImg = document.getElementById('imgPromo');
             const msj = document.getElementById('mensajePromo');
 
-            if (!nombre || !categoria || !costo) {
-                msj.innerText = "⚠️ Completá nombre, categoría y precio"; msj.style.color = "orange"; return;
-            }
+            if (!nombre || !costo) { msj.innerText = "⚠️ Completá nombre y precio"; msj.style.color = "orange"; return; }
 
-            // Recolectar artículos seleccionados
             const inputsCantidades = document.querySelectorAll('.cant-articulo-promo');
             const articulosSeleccionados = [];
 
             inputsCantidades.forEach(input => {
                 const cantidad = parseInt(input.value);
                 if (cantidad > 0) {
-                    articulosSeleccionados.push({
-                        codArticulo: parseInt(input.getAttribute('data-id')),
-                        cantidad: cantidad
-                    });
+                    articulosSeleccionados.push({ codArticulo: parseInt(input.getAttribute('data-id')), cantidad: cantidad });
                 }
             });
 
-            if (articulosSeleccionados.length === 0) {
-                msj.innerText = "⚠️ Seleccioná al menos 1 artículo para armar la promo"; msj.style.color = "orange"; return;
-            }
+            if (articulosSeleccionados.length === 0) { msj.innerText = "⚠️ Seleccioná al menos 1 artículo"; msj.style.color = "orange"; return; }
 
             const fotoBase64 = await leerFoto(inputImg);
-
-            // Objeto que matchea exacto con PromoCreateDTO de C#
-            const obj = {
-                nombre: nombre,
-                descripcion: "",
-                categoria: categoria,
-                urlImagen: fotoBase64,
-                precioVenta: parseFloat(costo),
-                articulos: articulosSeleccionados
-            };
+            const obj = { nombre: nombre, descripcion: "", categoria: "Promos", urlImagen: fotoBase64, precioVenta: parseFloat(costo), articulos: articulosSeleccionados };
 
             try {
-                const res = await fetch(urlPromos, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(obj)
-                });
-
+                const res = await fetch(urlPromos, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(obj) });
                 if (res.ok) {
-                    msj.innerText = "✅ ¡Promo Guardada!"; msj.style.color = "green";
-                    document.getElementById('nombrePromo').value = ""; document.getElementById('catPromo').value = ""; document.getElementById('imgPromo').value = ""; document.getElementById('costoPromo').value = "";
-
-                    // Resetear las cantidades a 0
+                    msj.innerText = "✅ Promoción Guardada"; msj.style.color = "green";
+                    document.getElementById('nombrePromo').value = ""; document.getElementById('costoPromo').value = ""; document.getElementById('imgPromo').value = "";
                     document.querySelectorAll('.cant-articulo-promo').forEach(input => input.value = 0);
-
                     cargarPromociones();
                     setTimeout(() => msj.innerText = "", 3000);
-                } else {
-                    msj.innerText = "❌ Error al guardar"; msj.style.color = "red";
                 }
             } catch (e) { msj.innerText = "❌ Error de conexión"; msj.style.color = "red"; }
         }
@@ -385,9 +513,92 @@
             cargarPromociones();
         }
 
+        // --- LÓGICA CATEGORÍAS ---
+        async function cargarCategorias() {
+            try {
+                const res = await fetch(urlCategorias);
+                const data = await res.json();
+                const tbody = document.getElementById('tabla-categorias');
+                tbody.innerHTML = '';
+                data.forEach(item => {
+                    tbody.innerHTML += `<tr>
+                            <td><strong>${item.nombre}</strong></td>
+                            <td><button class="btn-borrar" onclick="eliminarCategoria(${item.codCategoria})">Borrar</button></td>
+                        </tr>`;
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        async function guardarCategoria() {
+            const nombre = document.getElementById('nombreCategoria').value;
+            const msj = document.getElementById('mensajeCategoria');
+            if (!nombre) { msj.innerText = "⚠️ Completá el nombre"; msj.style.color = "orange"; return; }
+
+            try {
+                const res = await fetch(urlCategorias, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre: nombre }) });
+                if (res.ok) {
+                    msj.innerText = "✅ Categoría Guardada"; msj.style.color = "green";
+                    document.getElementById('nombreCategoria').value = "";
+                    cargarCategorias();
+                    setTimeout(() => msj.innerText = "", 3000);
+                }
+            } catch (e) { msj.innerText = "❌ Error"; msj.style.color = "red"; }
+        }
+
+        async function eliminarCategoria(id) {
+            if (!confirm("¿Borrar categoría?")) return;
+            await fetch(`${urlCategorias}/${id}`, { method: 'DELETE' });
+            cargarCategorias();
+        }
+
+        // --- LÓGICA BANNERS ---
+        async function cargarBanners() {
+            try {
+                const res = await fetch(urlBanners);
+                const data = await res.json();
+                const tbody = document.getElementById('tabla-banners');
+                tbody.innerHTML = '';
+                data.forEach(item => {
+                    tbody.innerHTML += `<tr>
+                            <td><strong>${item.titulo}</strong><br><small>${item.subtitulo}</small></td>
+                            <td><div style="width:30px;height:30px;background:${item.backgroundColor};border-radius:4px;border:1px solid #ccc;"></div></td>
+                            <td><button class="btn-borrar" onclick="eliminarBanner(${item.codBanner})">Borrar</button></td>
+                        </tr>`;
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        async function guardarBanner() {
+            const titulo = document.getElementById('tituloBanner').value;
+            const subtitulo = document.getElementById('subtituloBanner').value;
+            const color = document.getElementById('colorBanner').value;
+            const msj = document.getElementById('mensajeBanner');
+
+            if (!titulo) { msj.innerText = "⚠️ Completá el título"; msj.style.color = "orange"; return; }
+
+            try {
+                const obj = { titulo: titulo, subtitulo: subtitulo, backgroundColor: color };
+                const res = await fetch(urlBanners, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(obj) });
+                if (res.ok) {
+                    msj.innerText = "✅ Banner Guardado"; msj.style.color = "green";
+                    document.getElementById('tituloBanner').value = ""; document.getElementById('subtituloBanner').value = "";
+                    cargarBanners();
+                    setTimeout(() => msj.innerText = "", 3000);
+                }
+            } catch (e) { msj.innerText = "❌ Error"; msj.style.color = "red"; }
+        }
+
+        async function eliminarBanner(id) {
+            if (!confirm("¿Borrar banner?")) return;
+            await fetch(`${urlBanners}/${id}`, { method: 'DELETE' });
+            cargarBanners();
+        }
+
         window.onload = () => {
             cargarArticulos();
             cargarPromociones();
+            cargarCategorias();
+            cargarBanners();
         };
     </script>
 </body>

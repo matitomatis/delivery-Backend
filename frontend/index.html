@@ -3,476 +3,299 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menú - Delivery</title>
+    <title>La Dolce - Delivery</title>
     <style>
+        :root {
+            --primary: #fa0050; /* El rojo característico tipo PedidosYa */
+            --bg: #f5f5f5;
+            --text-dark: #333333;
+            --text-muted: #777777;
+            --white: #ffffff;
+            --border: #ebebeb;
+        }
+
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #f1f2f6;
-            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
             margin: 0;
-            padding-bottom: 80px;
+            padding: 0;
+            padding-bottom: 90px; /* Espacio para que el carrito no tape el último producto */
         }
 
-        h1 {
-            text-align: center;
-            color: #2f3542;
-        }
-
-        h2 {
-            color: #ff4757;
-            border-bottom: 2px solid #ddd;
-            padding-bottom: 10px;
-            margin-top: 40px;
-        }
-
-        .grilla {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        .tarjeta {
-            background: white;
+        /* HEADER: Ubicación y Buscador */
+        .top-bar {
+            background: var(--white);
             padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            text-align: center;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
-            .tarjeta img {
+        .location {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+            .location strong {
+                color: var(--primary);
+                font-size: 1.05rem;
+                display: block;
+                margin-top: 2px;
+            }
+
+        .search-box {
+            background: #f0f0f0;
+            border-radius: 8px;
+            padding: 12px 15px;
+            border: none;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 0.95rem;
+            color: var(--text-dark);
+            outline: none;
+        }
+
+        /* BANNERS PROMOCIONALES */
+        .banner-container {
+            padding: 15px;
+            overflow-x: auto;
+            display: flex;
+            gap: 12px;
+            scrollbar-width: none;
+        }
+
+            .banner-container::-webkit-scrollbar {
+                display: none;
+            }
+
+        .banner {
+            min-width: 260px;
+            height: 110px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #fa0050, #ff4d79);
+            color: white;
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            box-sizing: border-box;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 3px 6px rgba(250, 0, 80, 0.2);
+        }
+
+        /* CATEGORÍAS (Scroll horizontal) */
+        .categorias {
+            display: flex;
+            padding: 0 15px 15px 15px;
+            gap: 10px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+            .categorias::-webkit-scrollbar {
+                display: none;
+            }
+
+        .cat-item {
+            background: var(--white);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            white-space: nowrap;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            cursor: pointer;
+        }
+
+            .cat-item.active {
+                color: var(--primary);
+                background: #fff0f4; /* Un fondo rosita muy sutil */
+            }
+
+        /* LISTADO DE PRODUCTOS */
+        .seccion-titulo {
+            padding: 10px 15px;
+            margin: 0;
+            font-size: 1.2rem;
+            color: var(--text-dark);
+            background: var(--white);
+        }
+
+        .producto {
+            background: var(--white);
+            padding: 15px;
+            display: flex;
+            gap: 15px;
+            border-bottom: 1px solid var(--border);
+            align-items: flex-start;
+        }
+
+        .producto-info {
+            flex: 1;
+        }
+
+            .producto-info h3 {
+                margin: 0 0 4px 0;
+                font-size: 1rem;
+                color: var(--text-dark);
+            }
+
+            .producto-info p {
+                margin: 0 0 10px 0;
+                font-size: 0.85rem;
+                color: var(--text-muted);
+                line-height: 1.4;
+                display: -webkit-box;
+                -webkit-line-clamp: 2; /* Trunca el texto a 2 renglones */
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+
+            .producto-info .precio {
+                font-weight: bold;
+                color: var(--text-dark);
+                font-size: 1.05rem;
+            }
+
+        /* FOTO DEL PRODUCTO Y BOTÓN AGREGAR */
+        .producto-img-container {
+            position: relative;
+            width: 95px;
+            height: 95px;
+            flex-shrink: 0;
+        }
+
+            .producto-img-container img {
                 width: 100%;
-                height: 200px;
+                height: 100%;
                 object-fit: cover;
                 border-radius: 8px;
-                background: #eee;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             }
 
-            .tarjeta h3 {
-                margin: 15px 0 5px 0;
-                color: #2f3542;
-                font-size: 1.1em;
-            }
-
-        .precio {
-            font-size: 1.2em;
-            font-weight: bold;
-            color: #2ed573;
-            margin: 10px 0;
-        }
-
-        .categoria {
-            font-size: 0.85em;
-            color: #747d8c;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .promo-destacada {
-            border: 2px solid #ffa502;
-        }
-
-        /* Botones de Agregar */
-        .btn-agregar {
-            background: #ff4757;
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 5px;
-            font-weight: bold;
+        .btn-add {
+            position: absolute;
+            bottom: -8px;
+            right: -8px;
+            background: var(--white);
+            color: var(--primary);
+            border: 1px solid var(--border);
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: 300;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
             cursor: pointer;
-            width: 100%;
-            margin-top: 10px;
-            transition: 0.2s;
         }
 
-            .btn-agregar:hover {
-                background: #e03e4d;
-            }
-
-        .promo-destacada .btn-agregar {
-            background: #ffa502;
-        }
-
-            .promo-destacada .btn-agregar:hover {
-                background: #e59400;
-            }
-
-        /* Estilos del Carrito */
-        .btn-flotante {
+        /* CARRITO FLOTANTE BOTTOM */
+        .carrito-flotante {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #2ed573;
-            color: white;
-            border: none;
-            padding: 15px 25px;
-            border-radius: 50px;
-            font-size: 1.1em;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            z-index: 1000;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-            .btn-flotante:hover {
-                background: #26b963;
-                transform: scale(1.05);
-            }
-
-        .badge {
-            background: white;
-            color: #2ed573;
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-size: 0.9em;
-        }
-
-        .carrito-panel {
-            position: fixed;
-            top: 0;
-            right: -400px;
-            width: 100%;
-            max-width: 350px;
-            height: 100vh;
-            background: white;
-            box-shadow: -2px 0 15px rgba(0,0,0,0.2);
-            transition: right 0.3s ease;
-            z-index: 1001;
-            display: flex;
-            flex-direction: column;
-        }
-
-            .carrito-panel.abierto {
-                right: 0;
-            }
-
-        .carrito-header {
-            background: #2f3542;
-            color: white;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-            .carrito-header h2 {
-                margin: 0;
-                font-size: 1.2rem;
-                color: white;
-                border: none;
-                padding: 0;
-            }
-
-        .btn-cerrar {
-            background: transparent;
-            color: white;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 0;
-        }
-
-        .carrito-body {
-            padding: 20px;
-            flex-grow: 1;
-            overflow-y: auto;
-            background: #f8f9fa;
-        }
-
-        .carrito-footer {
-            padding: 20px;
-            border-top: 1px solid #ddd;
-            background: white;
-        }
-
-        .carrito-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #ddd;
-            padding: 15px 0;
-        }
-
-        .carrito-item-info {
-            flex-grow: 1;
-        }
-
-            .carrito-item-info h4 {
-                margin: 0 0 5px 0;
-                color: #2f3542;
-                font-size: 0.95em;
-            }
-
-            .carrito-item-info p {
-                margin: 0;
-                color: #2ed573;
-                font-weight: bold;
-            }
-
-        .carrito-controles {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .btn-control {
-            background: #eee;
-            border: none;
-            width: 28px;
-            height: 28px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            color: #2f3542;
-        }
-
-            .btn-control:hover {
-                background: #ddd;
-            }
-
-        .total-fila {
-            display: flex;
-            justify-content: space-between;
-            font-size: 1.3em;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #2f3542;
-        }
-
-        .btn-pedir {
-            width: 100%;
-            background: #2ed573;
-            color: white;
-            border: none;
-            padding: 15px;
+            bottom: 15px;
+            left: 15px;
+            right: 15px;
+            background: var(--primary);
+            color: var(--white);
+            padding: 16px 20px;
             border-radius: 8px;
-            font-size: 1.1em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             font-weight: bold;
+            box-shadow: 0 4px 12px rgba(250, 0, 80, 0.3);
             cursor: pointer;
+            z-index: 1000;
         }
 
-            .btn-pedir:hover {
-                background: #26b963;
-            }
+        .carrito-cantidad {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
 
-    <div style="padding: 0 20px;">
-        <h1>🍔 Nuestro Menú</h1>
-
-        <h2>⭐ Promociones</h2>
-        <div id="grilla-promos" class="grilla"></div>
-
-        <h2>🍔 Artículos Individuales</h2>
-        <div id="grilla-articulos" class="grilla"></div>
+    <!-- Header Fijo -->
+    <div class="top-bar">
+        <div class="location">
+            Entregar en
+            <strong>Av. Corrientes 1234 ▾</strong>
+        </div>
+        <input type="text" class="search-box" placeholder="Buscar porciones, postres, tortas...">
     </div>
 
-    <!-- Botón Flotante del Carrito -->
-    <button class="btn-flotante" id="btn-flotante" onclick="toggleCarrito()">
-        🛒 Mi Pedido <span class="badge" id="carrito-badge">0</span>
-    </button>
+    <!-- Banners -->
+    <div class="banner-container">
+        <div class="banner">20% OFF<br>en Chocotortas</div>
+        <div class="banner" style="background: linear-gradient(135deg, #8e44ad, #9b59b6);">Envío Gratis<br>Box Degustación</div>
+    </div>
 
-    <!-- Panel Lateral del Carrito -->
-    <div class="carrito-panel" id="panel-carrito">
-        <div class="carrito-header">
-            <h2>🛒 Tu Pedido</h2>
-            <button class="btn-cerrar" onclick="toggleCarrito()">✖</button>
+    <!-- Filtros Horizontales -->
+    <div class="categorias">
+        <div class="cat-item active">🔥 Destacados</div>
+        <div class="cat-item">🍰 Porciones</div>
+        <div class="cat-item">🎂 Tortas Enteras</div>
+        <div class="cat-item">🥐 Box Salados</div>
+    </div>
+
+    <!-- Listado de Productos -->
+    <h2 class="seccion-titulo">🔥 Destacados</h2>
+
+    <div class="producto">
+        <div class="producto-info">
+            <h3>Marquise de Chocolate</h3>
+            <p>Base húmeda de chocolate con dulce de leche y merengue italiano.</p>
+            <div class="precio">$4.500</div>
         </div>
-        <div class="carrito-body" id="carrito-body">
-            <!-- Los items del carrito se dibujan acá -->
-            <p style="text-align:center; color:#999; margin-top:50px;">El carrito está vacío</p>
-        </div>
-        <div class="carrito-footer">
-            <div class="total-fila">
-                <span>Total:</span>
-                <span id="carrito-total">$0</span>
-            </div>
-            <button class="btn-pedir" onclick="iniciarPedido()">Ir a Pagar ➔</button>
+        <div class="producto-img-container">
+            <img src="https://via.placeholder.com/150/555555/ffffff?text=Marquise" alt="Marquise">
+            <div class="btn-add">+</div>
         </div>
     </div>
 
-    <script>
-        const urlArticulos = 'https://localhost:7111/api/Articulos';
-        const urlPromos = 'https://localhost:7111/api/Promos';
+    <div class="producto">
+        <div class="producto-info">
+            <h3>Box Degustación 4 Porciones</h3>
+            <p>Elegí 4 porciones a elección. Ideal para compartir o probar de todo un poco.</p>
+            <div class="precio">$15.000</div>
+        </div>
+        <div class="producto-img-container">
+            <img src="https://via.placeholder.com/150/555555/ffffff?text=Box+Mix" alt="Box">
+            <div class="btn-add">+</div>
+        </div>
+    </div>
 
-        // Lógica del Carrito en Memoria
-        let carrito = [];
+    <h2 class="seccion-titulo" style="margin-top: 10px;">🍰 Porciones</h2>
 
-        function toggleCarrito() {
-            document.getElementById('panel-carrito').classList.toggle('abierto');
-        }
+    <div class="producto">
+        <div class="producto-info">
+            <h3>Porción Lemon Pie</h3>
+            <p>Masa sablée, crema de limón suave y merengue tostado a la perfección.</p>
+            <div class="precio">$4.200</div>
+        </div>
+        <div class="producto-img-container">
+            <img src="https://via.placeholder.com/150/555555/ffffff?text=Lemon+Pie" alt="Lemon Pie">
+            <div class="btn-add">+</div>
+        </div>
+    </div>
 
-        function agregarAlCarrito(id, nombre, precio, tipo) {
-            // Buscamos si ya existe en el carrito
-            const itemExistente = carrito.find(i => i.id === id && i.tipo === tipo);
+    <!-- Carrito Flotante (Siempre visible) -->
+    <div class="carrito-flotante">
+        <div class="carrito-cantidad">2</div>
+        <div>Ver tu pedido</div>
+        <div>$19.500</div>
+    </div>
 
-            if (itemExistente) {
-                itemExistente.cantidad++;
-            } else {
-                carrito.push({ id, nombre, precio, tipo, cantidad: 1 });
-            }
-
-            actualizarCarrito();
-
-            // Animación visual del botón flotante
-            const btn = document.getElementById('btn-flotante');
-            btn.style.transform = 'scale(1.15)';
-            setTimeout(() => btn.style.transform = 'scale(1)', 200);
-        }
-
-        function cambiarCantidad(index, delta) {
-            carrito[index].cantidad += delta;
-            if (carrito[index].cantidad <= 0) {
-                carrito.splice(index, 1); // Si llega a 0, lo borra del array
-            }
-            actualizarCarrito();
-        }
-
-        function actualizarCarrito() {
-            const body = document.getElementById('carrito-body');
-            const spanTotal = document.getElementById('carrito-total');
-            const badge = document.getElementById('carrito-badge');
-
-            body.innerHTML = '';
-            let total = 0;
-            let cantidadTotal = 0;
-
-            carrito.forEach((item, index) => {
-                total += item.precio * item.cantidad;
-                cantidadTotal += item.cantidad;
-
-                body.innerHTML += `
-                        <div class="carrito-item">
-                            <div class="carrito-item-info">
-                                <h4>${item.nombre}</h4>
-                                <p>$${item.precio}</p>
-                            </div>
-                            <div class="carrito-controles">
-                                <button class="btn-control" onclick="cambiarCantidad(${index}, -1)">-</button>
-                                <span>${item.cantidad}</span>
-                                <button class="btn-control" onclick="cambiarCantidad(${index}, 1)">+</button>
-                            </div>
-                        </div>
-                    `;
-            });
-
-            if (carrito.length === 0) {
-                body.innerHTML = '<p style="text-align:center; color:#999; margin-top:50px;">El carrito está vacío 🛒</p>';
-            }
-
-            spanTotal.innerText = `$${total}`;
-            badge.innerText = cantidadTotal;
-        }
-
-        async function iniciarPedido() {
-            if (carrito.length === 0) {
-                alert("Agregá algo al carrito primero.");
-                return;
-            }
-
-            // 1. Transformamos nuestro carrito al formato DetallePedidoCreateDTO
-            const detalles = carrito.map(item => {
-                return {
-                    codArticulo: item.tipo === 'articulo' ? item.id : null,
-                    codPromo: item.tipo === 'promo' ? item.id : null,
-                    cantidad: item.cantidad,
-                    precioUnitario: item.precio
-                };
-            });
-
-            // 2. Armamos el PedidoCreateDTO completo
-            // IMPORTANTE: Estamos hardcodeando IDs en 1 para probar la funcionalidad. 
-            // Tenés que tener un Cliente con ID 1, FormaPago 1 y TipoEnvio 1 en tu SQL Server.
-            const pedido = {
-                codCliente: 1,
-                codFormaPago: 1,
-                codTipoEnvio: 1,
-                detalles: detalles
-            };
-
-            // 3. Enviamos a la base de datos
-            try {
-                const res = await fetch('https://localhost:7111/api/Pedidos', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(pedido)
-                });
-
-                if (res.ok) {
-                    alert("✅ ¡Pedido registrado con éxito en la base de datos!");
-                    carrito = []; // Vaciamos el carrito local
-                    actualizarCarrito(); // Limpiamos la pantalla
-                    toggleCarrito(); // Cerramos el panel lateral
-                } else {
-                    alert("❌ Error al guardar. Verificá que exista el Cliente ID 1 en tu BD.");
-                }
-            } catch (e) {
-                alert("❌ Error de conexión al servidor.");
-                console.error(e);
-            }
-        }
-
-        // Carga de Productos
-        async function cargarMenu() {
-            const imgGris = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22250%22%20height%3D%22200%22%20viewBox%3D%220%200%20250%20200%22%3E%3Crect%20fill%3D%22%23eeeeee%22%20width%3D%22250%22%20height%3D%22200%22%2F%3E%3Ctext%20fill%3D%22%23999999%22%20font-family%3D%22sans-serif%22%20font-size%3D%2218%22%20dy%3D%2210.5%22%20font-weight%3D%22bold%22%20x%3D%2250%25%22%20y%3D%2250%25%22%20text-anchor%3D%22middle%22%3ESin%20Foto%3C%2Ftext%3E%3C%2Fsvg%3E";
-
-            // 1. Cargar Promos
-            try {
-                const resPromo = await fetch(urlPromos);
-                const promos = await resPromo.json();
-                const divPromo = document.getElementById('grilla-promos');
-
-                divPromo.innerHTML = promos.map(item => {
-                    const imgFinal = item.urlImagen || item.UrlImagen || imgGris;
-                    const id = item.codPromo || item.CodPromo;
-                    const nombreSeguro = item.nombre.replace(/'/g, "\\'"); // Evita errores con comillas simples
-
-                    return `
-                        <div class="tarjeta promo-destacada">
-                            <img src="${imgFinal}" onerror="this.onerror=null; this.src='${imgGris}';" alt="${item.nombre}">
-                            <div>
-                                <h3>${item.nombre}</h3>
-                                <p class="categoria">${item.categoria}</p>
-                                <p class="precio">$${item.precioVenta}</p>
-                            </div>
-                            <button class="btn-agregar" onclick="agregarAlCarrito(${id}, '${nombreSeguro}', ${item.precioVenta}, 'promo')">Sumar al Pedido 🛒</button>
-                        </div>
-                    `}).join('');
-            } catch (e) { console.error("Error con promos", e); }
-
-            // 2. Cargar Artículos
-            try {
-                const resArt = await fetch(urlArticulos);
-                const articulos = await resArt.json();
-                const divArt = document.getElementById('grilla-articulos');
-
-                divArt.innerHTML = articulos.map(item => {
-                    const imgFinal = item.urlImagen || item.UrlImagen || imgGris;
-                    const id = item.codArticulo || item.CodArticulo;
-                    const nombreSeguro = item.descripcion.replace(/'/g, "\\'");
-
-                    return `
-                        <div class="tarjeta">
-                            <img src="${imgFinal}" onerror="this.onerror=null; this.src='${imgGris}';" alt="${item.descripcion}">
-                            <div>
-                                <h3>${item.descripcion}</h3>
-                                <p class="precio">$${item.costo}</p>
-                            </div>
-                            <button class="btn-agregar" onclick="agregarAlCarrito(${id}, '${nombreSeguro}', ${item.costo}, 'articulo')">Sumar al Pedido 🛒</button>
-                        </div>
-                    `}).join('');
-            } catch (e) { console.error("Error con artículos", e); }
-        }
-
-        window.onload = cargarMenu;
-    </script>
 </body>
 </html>
