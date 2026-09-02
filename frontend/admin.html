@@ -268,6 +268,16 @@
                     <label>Precio de venta ($):</label>
                     <input type="number" id="costoArticulo" placeholder="Ej: 4200">
                 </div>
+
+                <!-- NUEVO: Desplegable de Categorías -->
+                <div class="form-group">
+                    <label>Categoría:</label>
+                    <select id="categoriaArticulo">
+                        <option value="">Primero creá una categoría...</option>
+                    </select>
+                </div>
+                <!-- FIN NUEVO -->
+
                 <div class="form-group">
                     <label>Subir Foto:</label>
                     <input type="file" id="imgArticulo" accept="image/*">
@@ -412,16 +422,16 @@
                 data.forEach(item => {
                     const id = item.codArticulo || item.CodArticulo;
                     tbody.innerHTML += `<tr>
-                            <td><strong>${item.descripcion}</strong></td>
-                            <td>$${item.costo}</td>
-                            <td><button class="btn-borrar" onclick="eliminarArticulo(${id})">Borrar</button></td>
-                        </tr>`;
+                                <td><strong>${item.descripcion}</strong></td>
+                                <td>$${item.costo}</td>
+                                <td><button class="btn-borrar" onclick="eliminarArticulo(${id})">Borrar</button></td>
+                            </tr>`;
 
                     cajaPromos.innerHTML += `
-                            <div class="fila-articulo-promo">
-                                <span>${item.descripcion}</span>
-                                <input type="number" min="0" value="0" data-id="${id}" class="cant-articulo-promo">
-                            </div>`;
+                                <div class="fila-articulo-promo">
+                                    <span>${item.descripcion}</span>
+                                    <input type="number" min="0" value="0" data-id="${id}" class="cant-articulo-promo">
+                                </div>`;
                 });
             } catch (e) { console.error("Error al cargar artículos", e); }
         }
@@ -430,20 +440,40 @@
             const desc = document.getElementById('descArticulo').value;
             const costo = document.getElementById('costoArticulo').value;
             const inputImg = document.getElementById('imgArticulo');
+            const catId = document.getElementById('categoriaArticulo').value; // <-- Capturamos la categoría
             const msj = document.getElementById('mensajeArticulo');
 
-            if (!desc || !costo) { msj.innerText = "⚠️ Completá nombre y precio"; msj.style.color = "orange"; return; }
+            if (!desc || !costo || !catId) {
+                msj.innerText = "⚠️ Completá nombre, precio y categoría";
+                msj.style.color = "orange";
+                return;
+            }
 
             const fotoBase64 = await leerFoto(inputImg);
-            const obj = { codArticulo: 0, descripcion: desc, urlImagen: fotoBase64, costo: parseFloat(costo), stock: 0, stockMinimo: 0 };
+            const obj = {
+                codArticulo: 0,
+                descripcion: desc,
+                urlImagen: fotoBase64,
+                costo: parseFloat(costo),
+                stock: 0,
+                stockMinimo: 0,
+                categoriaId: parseInt(catId) // <-- Agregamos el ID
+            };
 
             try {
                 const res = await fetch(urlArticulos, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(obj) });
                 if (res.ok) {
                     msj.innerText = "✅ Producto Guardado"; msj.style.color = "green";
-                    document.getElementById('descArticulo').value = ""; document.getElementById('costoArticulo').value = ""; document.getElementById('imgArticulo').value = "";
+                    document.getElementById('descArticulo').value = "";
+                    document.getElementById('costoArticulo').value = "";
+                    document.getElementById('imgArticulo').value = "";
+                    document.getElementById('categoriaArticulo').value = "";
                     cargarArticulos();
                     setTimeout(() => msj.innerText = "", 3000);
+                } else {
+                    const errorTxt = await res.text();
+                    console.error("Rechazo backend:", errorTxt);
+                    msj.innerText = "❌ Rechazado (Revisá consola)"; msj.style.color = "red";
                 }
             } catch (e) { msj.innerText = "❌ Error"; msj.style.color = "red"; }
         }
@@ -464,10 +494,10 @@
                 data.forEach(item => {
                     const id = item.codPromo || item.CodPromo;
                     tbody.innerHTML += `<tr>
-                            <td><strong>${item.nombre}</strong></td>
-                            <td>$${item.precioVenta}</td>
-                            <td><button class="btn-borrar" onclick="eliminarPromocion(${id})">Borrar</button></td>
-                        </tr>`;
+                                <td><strong>${item.nombre}</strong></td>
+                                <td>$${item.precioVenta}</td>
+                                <td><button class="btn-borrar" onclick="eliminarPromocion(${id})">Borrar</button></td>
+                            </tr>`;
                 });
             } catch (e) { console.error(e); }
         }
@@ -518,13 +548,21 @@
             try {
                 const res = await fetch(urlCategorias);
                 const data = await res.json();
+
                 const tbody = document.getElementById('tabla-categorias');
+                const selectArticulo = document.getElementById('categoriaArticulo'); // <-- Capturamos el select
+
                 tbody.innerHTML = '';
+                selectArticulo.innerHTML = '<option value="">Seleccioná una categoría...</option>';
+
                 data.forEach(item => {
                     tbody.innerHTML += `<tr>
-                            <td><strong>${item.nombre}</strong></td>
-                            <td><button class="btn-borrar" onclick="eliminarCategoria(${item.codCategoria})">Borrar</button></td>
-                        </tr>`;
+                                <td><strong>${item.nombre}</strong></td>
+                                <td><button class="btn-borrar" onclick="eliminarCategoria(${item.codCategoria})">Borrar</button></td>
+                            </tr>`;
+
+                    // Llenamos el select dinámicamente
+                    selectArticulo.innerHTML += `<option value="${item.codCategoria}">${item.nombre}</option>`;
                 });
             } catch (e) { console.error(e); }
         }
@@ -535,12 +573,21 @@
             if (!nombre) { msj.innerText = "⚠️ Completá el nombre"; msj.style.color = "orange"; return; }
 
             try {
-                const res = await fetch(urlCategorias, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre: nombre }) });
+                const res = await fetch(urlCategorias, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ codCategoria: 0, nombre: nombre }) // <-- Añadido codCategoria: 0
+                });
+
                 if (res.ok) {
                     msj.innerText = "✅ Categoría Guardada"; msj.style.color = "green";
                     document.getElementById('nombreCategoria').value = "";
-                    cargarCategorias();
+                    cargarCategorias(); // Esto también actualiza el <select> en Productos
                     setTimeout(() => msj.innerText = "", 3000);
+                } else {
+                    const errorTxt = await res.text();
+                    console.error("Rechazo backend:", errorTxt);
+                    msj.innerText = "❌ Rechazado (Revisá consola)"; msj.style.color = "red";
                 }
             } catch (e) { msj.innerText = "❌ Error"; msj.style.color = "red"; }
         }
@@ -560,10 +607,10 @@
                 tbody.innerHTML = '';
                 data.forEach(item => {
                     tbody.innerHTML += `<tr>
-                            <td><strong>${item.titulo}</strong><br><small>${item.subtitulo}</small></td>
-                            <td><div style="width:30px;height:30px;background:${item.backgroundColor};border-radius:4px;border:1px solid #ccc;"></div></td>
-                            <td><button class="btn-borrar" onclick="eliminarBanner(${item.codBanner})">Borrar</button></td>
-                        </tr>`;
+                                <td><strong>${item.titulo}</strong><br><small>${item.subtitulo}</small></td>
+                                <td><div style="width:30px;height:30px;background:${item.backgroundColor};border-radius:4px;border:1px solid #ccc;"></div></td>
+                                <td><button class="btn-borrar" onclick="eliminarBanner(${item.codBanner})">Borrar</button></td>
+                            </tr>`;
                 });
             } catch (e) { console.error(e); }
         }

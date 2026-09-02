@@ -27,6 +27,10 @@ namespace delivery.Controllers
         [HttpPost]
         public async Task<ActionResult<Categoria>> PostCategoria(Categoria categoria)
         {
+            // Apagamos la validación estricta de las relaciones
+            ModelState.Remove("Articulos");
+            ModelState.Remove("Banner");
+
             _context.Categorias.Add(categoria);
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetCategorias), new { id = categoria.CodCategoria }, categoria);

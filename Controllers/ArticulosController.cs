@@ -34,7 +34,8 @@ namespace delivery.Controllers
                 Descripcion = a.Descripcion,
                 Costo = a.Costo,
                 Stock = a.Stock,
-                UrlImagen = a.UrlImagen // <--- Agregado acá
+                UrlImagen = a.UrlImagen,
+                CategoriaId = a.CategoriaId// <--- Agregado acá
             }).ToList();
 
             return Ok(articulosDto);
@@ -56,13 +57,14 @@ namespace delivery.Controllers
         [HttpPost]
         public async Task<ActionResult> Post(ArticuloCreateDTO articuloDto)
         {
-            // Armamos la Entidad real usando los datos del formulario DTO (incluyendo la foto)
+            // Armamos la Entidad real usando los datos del formulario DTO
             var nuevoArticulo = new Articulo
             {
                 Descripcion = articuloDto.Descripcion,
                 Costo = articuloDto.Costo,
                 Stock = articuloDto.Stock,
-                UrlImagen = articuloDto.UrlImagen // <--- Agregado acá
+                UrlImagen = articuloDto.UrlImagen,
+                CategoriaId = articuloDto.CategoriaId // <--- ¡Conectamos el ID acá!
             };
 
             // La mandamos a guardar
