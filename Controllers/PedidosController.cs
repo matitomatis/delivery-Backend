@@ -1,8 +1,6 @@
-﻿using delivery.Models;
-using delivery.DTOs;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using delivery.Repositories;
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -12,39 +10,44 @@ namespace delivery.Controllers
     [ApiController]
     public class PedidosController : ControllerBase
     {
-        private readonly IPedidoRepository _repository; // Asegurate de tener inyectado el repositorio correspondiente
+        private readonly ApplicationDbContext _context;
 
-        public PedidosController(IPedidoRepository repository)
+        public PedidosController(ApplicationDbContext context)
         {
-            _repository = repository;
+            _context = context;
         }
 
-        [HttpPost]
-        public async Task<ActionResult> CrearPedido(PedidoCreateDTO pedidoDto)
+        // GET: api/Pedidos/Pendientes
+        [HttpGet("Pendientes")]
+        public async Task<IActionResult> GetPendientes()
         {
-            // Mapeamos el DTO a la Entidad Real
-            var nuevoPedido = new Pedido
-            {
-                CodCliente = pedidoDto.CodCliente,
-                CodFormaPago = pedidoDto.CodFormaPago,
-                CodTipoEnvio = pedidoDto.CodTipoEnvio,
-                Fecha = DateTime.Now,
-
-                // Calculamos el total de forma segura en el backend
-                Total = pedidoDto.Detalles.Sum(d => d.Cantidad * d.PrecioUnitario),
-
-                // Iteramos la lista que llegó y armamos el detalle
-                Detalles = pedidoDto.Detalles.Select(d => new DetallePedido
+            var pedidos = await _context.Pedidos
+                .Where(p => p.Estado == "Pendiente")
+                // Si tenés el Cliente relacionado, podés hacer un .Include(p => p.Cliente) acá
+                .Select(p => new
                 {
-                    CodArticulo = d.CodArticulo,
-                    CodPromo = d.CodPromo,
-                    Cantidad = d.Cantidad,
-                    PrecioUnitario = d.PrecioUnitario
-                }).ToList()
-            };
+                    id = p.CodPedido, // Cambiar a p.CodPedido si así lo tenés en el model
+                    fecha = p.Fecha.ToString("dd/MM/yyyy HH:mm"),
+                    cliente = "Cliente", // Acá engancharías p.Cliente.Nombre si tenés la relación
+                    total = p.Total
+                })
+                .OrderByDescending(p => p.id) // Los más nuevos primero
+                .ToListAsync();
 
-            await _repository.SaveAsync(nuevoPedido);
-            return Ok();
+            return Ok(pedidos);
+        }
+
+        // PUT: api/Pedidos/5/Estado
+        [HttpPut("{id}/Estado")]
+        public async Task<IActionResult> UpdateEstado(int id, [FromBody] string nuevoEstado)
+        {
+            var pedido = await _context.Pedidos.FindAsync(id);
+            if (pedido == null) return NotFound();
+
+            pedido.Estado = nuevoEstado;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { mensaje = "Estado actualizado" });
         }
     }
 }

@@ -4,12 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Admin - La Dolce</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --primary: #fa0050;
+            --primary: #cc0000;
+            --primary-hover: #990000;
             --sidebar-bg: #111827;
-            --sidebar-hover: #1f2937;
-            --bg: #f3f4f6;
+            --sidebar-hover: rgba(204, 0, 0, 0.1);
+            --bg: #f4f6f9;
             --card-bg: #ffffff;
             --text-main: #1f2937;
             --text-muted: #6b7280;
@@ -18,34 +21,52 @@
             --danger: #ef4444;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            background-color: var(--bg);
+        * {
             margin: 0;
-            display: flex;
-            min-height: 100vh;
-            color: var(--text-main);
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 260px 1fr 300px;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        /* BARRA LATERAL */
         .sidebar {
-            width: 260px;
             background: var(--sidebar-bg);
             color: #e5e7eb;
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
+            padding: 20px 0;
             box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            z-index: 10;
         }
 
         .sidebar-logo {
-            padding: 25px 20px;
+            padding: 10px 20px 30px 20px;
             font-size: 1.5rem;
             font-weight: bold;
             border-bottom: 1px solid #374151;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
+
+            .sidebar-logo img {
+                max-width: 120px;
+                height: auto;
+                max-height: 48px;
+                border-radius: 8px;
+                object-fit: contain;
+            }
 
             .sidebar-logo span {
                 color: var(--primary);
@@ -71,25 +92,21 @@
             cursor: pointer;
             transition: 0.2s;
             font-size: 0.95rem;
+            margin-bottom: 4px;
         }
 
-            .nav-item:hover {
-                background: var(--sidebar-hover);
-                color: white;
-            }
-
-            .nav-item.active {
+            .nav-item:hover, .nav-item.active {
                 background: var(--sidebar-hover);
                 border-left-color: var(--primary);
-                color: white;
+                color: var(--primary);
             }
 
+        /* CONTENIDO CENTRAL */
         .main-wrapper {
-            flex-grow: 1;
             display: flex;
             flex-direction: column;
-            width: 100%;
-            overflow: hidden;
+            overflow-y: auto;
+            background: var(--bg);
         }
 
         .top-bar {
@@ -100,16 +117,24 @@
             justify-content: space-between;
             align-items: center;
             padding: 0 30px;
+            position: sticky;
+            top: 0;
+            z-index: 5;
         }
 
             .top-bar .search {
                 background: var(--bg);
                 border: 1px solid var(--border);
-                padding: 8px 15px;
+                padding: 10px 15px;
                 border-radius: 8px;
-                width: 300px;
+                width: 350px;
                 outline: none;
+                transition: 0.3s;
             }
+
+                .top-bar .search:focus {
+                    border-color: var(--primary);
+                }
 
         .admin-profile {
             display: flex;
@@ -127,13 +152,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            font-size: 1rem;
         }
 
         .main-content {
             padding: 30px;
-            overflow-y: auto;
-            box-sizing: border-box;
         }
 
         .vista-seccion {
@@ -169,6 +192,7 @@
                 color: var(--text-muted);
             }
 
+        /* TARJETAS Y TABLAS */
         .metricas-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -181,7 +205,19 @@
             padding: 25px;
             border-radius: 12px;
             border: 1px solid var(--border);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            position: relative;
+            overflow: hidden;
         }
+
+            .metric-card i {
+                position: absolute;
+                right: 20px;
+                top: 25px;
+                font-size: 2rem;
+                opacity: 0.1;
+                color: var(--text-main);
+            }
 
             .metric-card h4 {
                 margin: 0 0 10px 0;
@@ -196,21 +232,41 @@
                 margin: 0;
             }
 
+            .metric-card .valor-rojo {
+                color: var(--primary);
+            }
+
         .card {
             background: var(--card-bg);
             padding: 25px;
             border-radius: 12px;
             border: 1px solid var(--border);
             margin-bottom: 20px;
-            max-width: 900px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
 
-            .card h3 {
-                margin-top: 0;
-                border-bottom: 1px solid var(--border);
-                padding-bottom: 15px;
-                margin-bottom: 20px;
+        .card-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            gap: 15px;
+        }
+
+            .card-header-flex h3 {
+                border: none;
+                padding: 0;
+                margin: 0;
             }
+
+        .card h3:not(.card-header-flex h3) {
+            margin-top: 0;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
 
         .form-group {
             margin-bottom: 15px;
@@ -230,7 +286,13 @@
             border-radius: 8px;
             box-sizing: border-box;
             font-size: 0.95rem;
+            transition: 0.2s;
         }
+
+            input:focus, select:focus {
+                border-color: var(--primary);
+                outline: none;
+            }
 
         .caja-articulos {
             background: var(--bg);
@@ -258,14 +320,34 @@
         .btn-guardar {
             width: 100%;
             padding: 12px;
-            background: var(--success);
+            background: var(--primary);
             color: white;
             border: none;
             border-radius: 8px;
             font-weight: bold;
             cursor: pointer;
             font-size: 1rem;
+            transition: 0.2s;
         }
+
+            .btn-guardar:hover {
+                background: var(--primary-hover);
+            }
+
+        .input-rapido {
+            display: flex;
+            gap: 10px;
+            max-width: 400px;
+        }
+
+            .input-rapido .btn-guardar {
+                width: 150px;
+                background: var(--text-main);
+            }
+
+                .input-rapido .btn-guardar:hover {
+                    background: #000;
+                }
 
         .tabla-container {
             width: 100%;
@@ -296,147 +378,358 @@
         }
 
         .btn-borrar {
-            background: #fee2e2;
+            background: transparent;
             color: var(--danger);
-            border: 1px solid #fca5a5;
+            border: 1px solid var(--danger);
             padding: 6px 12px;
             border-radius: 6px;
             cursor: pointer;
+            transition: 0.2s;
         }
 
-        .input-rapido {
-            display: flex;
-            gap: 10px;
-            max-width: 400px;
-        }
-
-            .input-rapido .btn-guardar {
-                width: 150px;
-                background: var(--primary);
+            .btn-borrar:hover {
+                background: var(--danger);
+                color: white;
             }
+
+        /* PANEL DERECHO */
+        .right-panel {
+            background: var(--card-bg);
+            border-left: 1px solid var(--border);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .info-panel {
+            background: var(--bg);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+            .info-panel h3 {
+                font-size: 1rem;
+                margin-bottom: 15px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+        .btn-action-outline {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 10px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            transition: 0.2s;
+            color: var(--text-main);
+            text-decoration: none;
+        }
+
+            .btn-action-outline:hover {
+                border-color: var(--primary);
+                color: var(--primary);
+            }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding: 10px 15px;
+                white-space: nowrap;
+            }
+
+            .sidebar-logo {
+                padding: 0 15px 0 0;
+                border-bottom: none;
+                margin-bottom: 0;
+            }
+
+                .sidebar-logo img {
+                    max-width: 90px;
+                    max-height: 40px;
+                }
+
+            .menu-label {
+                display: none;
+            }
+
+            .nav-item {
+                margin-bottom: 0;
+                margin-right: 8px;
+                border-left: none;
+                border-bottom: 3px solid transparent;
+                padding: 8px 12px;
+                font-size: 0.9rem;
+            }
+
+                .nav-item:hover, .nav-item.active {
+                    border-left: none;
+                    border-bottom-color: var(--primary);
+                    background: transparent;
+                }
+
+            .top-bar {
+                height: auto;
+                padding: 15px;
+                flex-direction: column;
+                gap: 12px;
+                align-items: stretch;
+            }
+
+                .top-bar .search {
+                    width: 100%;
+                }
+
+            .main-content {
+                padding: 15px;
+            }
+
+            .right-panel {
+                border-left: none;
+                border-top: 1px solid var(--border);
+                padding: 20px 15px;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="sidebar-logo">🍰 La Dolce <span>Admin</span></div>
-        <div class="menu-label">Principal</div>
-        <a class="nav-item active" onclick="cambiarVista('vista-dashboard', this)">📊 Dashboard</a>
-        <div class="menu-label">Gestión</div>
-        <a class="nav-item" onclick="cambiarVista('vista-productos', this)">📦 Productos</a>
-        <a class="nav-item" onclick="cambiarVista('vista-promos', this)">⭐ Promociones</a>
-        <a class="nav-item" onclick="cambiarVista('vista-categorias', this)">🏷️ Categorías</a>
-        <a class="nav-item" onclick="cambiarVista('vista-banners', this)">🖼️ Banners</a>
-    </div>
-
-    <div class="main-wrapper">
-        <div class="top-bar">
-            <input type="text" class="search" placeholder="Buscar en el panel...">
-            <div class="admin-profile">
-                <div class="avatar">👨‍💻</div>
+    <div class="dashboard-container">
+        <!-- BARRA DE NAVEGACIÓN -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <img src="Gemini_Generated_Image_s0p106s0p106s0p1 (1).jfif" alt="Logo La Dolce">
                 <span>Admin</span>
             </div>
-        </div>
+            <div class="menu-label">Principal</div>
+            <a class="nav-item active" id="nav-dashboard" onclick="cambiarVista('vista-dashboard', this)"><i class="fas fa-chart-line"></i> Dashboard</a>
 
-        <div class="main-content">
-            <!-- DASHBOARD -->
-            <div id="vista-dashboard" class="vista-seccion activa">
-                <div class="header-seccion">
-                    <h1>¡Bienvenido, Admin! 👋</h1>
-                    <p>Aquí tienes un resumen de tu tienda y configuraciones clave.</p>
-                </div>
+            <div class="menu-label">Gestión</div>
+            <a class="nav-item" id="nav-pedidos" onclick="cambiarVista('vista-pedidos', this)"><i class="fas fa-shopping-bag"></i> Pedidos</a>
+            <a class="nav-item" id="nav-productos" onclick="cambiarVista('vista-productos', this)"><i class="fas fa-box"></i> Productos</a>
+            <a class="nav-item" id="nav-promos" onclick="cambiarVista('vista-promos', this)"><i class="fas fa-star"></i> Promociones</a>
+            <a class="nav-item" id="nav-categorias" onclick="cambiarVista('vista-categorias', this)"><i class="fas fa-tags"></i> Categorías</a>
+            <a class="nav-item" id="nav-banners" onclick="cambiarVista('vista-banners', this)"><i class="fas fa-image"></i> Banners</a>
+        </aside>
 
-                <div class="metricas-grid">
-                    <div class="metric-card"><h4>Productos Totales</h4><p class="valor" id="metric-prod">0</p></div>
-                    <div class="metric-card"><h4>Promociones Activas</h4><p class="valor" id="metric-promo">0</p></div>
-                    <div class="metric-card"><h4>Categorías</h4><p class="valor" id="metric-cat">0</p></div>
-                </div>
-
-                <div class="card">
-                    <h3>🚚 Costo de Envío Fijo</h3>
-                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: -10px; margin-bottom: 15px;">Este valor se sumará automáticamente al subtotal en el carrito del cliente.</p>
-                    <div class="input-rapido">
-                        <input type="number" id="input-envio" placeholder="Ej: 1500">
-                        <button class="btn-guardar" onclick="guardarEnvio()">Actualizar</button>
-                    </div>
-                    <p id="mensaje-envio" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="main-wrapper">
+            <div class="top-bar">
+                <input type="text" class="search" placeholder="Buscar en el panel...">
+                <div class="admin-profile">
+                    <div class="avatar"><i class="fas fa-user-shield"></i></div>
+                    <span>Admin</span>
                 </div>
             </div>
 
-            <!-- PRODUCTOS -->
-            <div id="vista-productos" class="vista-seccion">
-                <div class="header-seccion"><h1>Productos</h1></div>
-                <div class="card">
-                    <h3>🍰 Nuevo Producto</h3>
-                    <div class="form-group"><label>Nombre:</label><input type="text" id="descArticulo"></div>
-                    <div class="form-group"><label>Precio ($):</label><input type="number" id="costoArticulo"></div>
-                    <div class="form-group">
-                        <label>Categoría:</label>
-                        <select id="categoriaArticulo"><option value="">Seleccioná...</option></select>
+            <div class="main-content">
+                <!-- VISTA: DASHBOARD -->
+                <div id="vista-dashboard" class="vista-seccion activa">
+                    <div class="header-seccion">
+                        <h1>¡Bienvenido, Admin! 👋</h1>
+                        <p>Resumen general de tu tienda y accesos directos.</p>
                     </div>
-                    <div class="form-group"><label>Foto:</label><input type="file" id="imgArticulo" accept="image/*"></div>
-                    <button class="btn-guardar" onclick="guardarArticulo()">Guardar</button>
-                    <p id="mensajeArticulo" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
-                    <div class="tabla-container">
-                        <table><thead><tr><th>Descripción</th><th>Precio</th><th>Acción</th></tr></thead><tbody id="tabla-articulos"></tbody></table>
+
+                    <div class="metricas-grid">
+                        <div class="metric-card">
+                            <i class="fas fa-box"></i>
+                            <h4>Productos Totales</h4>
+                            <p class="valor valor-rojo" id="metric-prod">0</p>
+                        </div>
+                        <div class="metric-card">
+                            <i class="fas fa-star"></i>
+                            <h4>Promociones Activas</h4>
+                            <p class="valor valor-rojo" id="metric-promo">0</p>
+                        </div>
+                        <div class="metric-card">
+                            <i class="fas fa-tags"></i>
+                            <h4>Categorías</h4>
+                            <p class="valor valor-rojo" id="metric-cat">0</p>
+                        </div>
+                    </div>
+
+                    <!-- TARJETA DE ESTADÍSTICAS -->
+                    <div class="card">
+                        <div class="card-header-flex">
+                            <h3><i class="fas fa-chart-bar"></i> Facturación Anual</h3>
+                            <select id="selectYear" style="width: auto; padding: 6px 12px; font-weight: bold;" onchange="cargarEstadisticas()"></select>
+                        </div>
+                        <div style="position: relative; width: 100%; height: 280px;">
+                            <canvas id="graficoVentas"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3><i class="fas fa-truck"></i> Costo de Envío Fijo</h3>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: -10px; margin-bottom: 15px;">Este valor se sumará automáticamente al subtotal en el carrito del cliente.</p>
+                        <div class="input-rapido">
+                            <input type="number" id="input-envio" placeholder="Ej: 1500">
+                            <button class="btn-guardar" onclick="guardarEnvio()">Actualizar</button>
+                        </div>
+                        <p id="mensaje-envio" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
                     </div>
                 </div>
+
+                <!-- VISTA: PEDIDOS PENDIENTES -->
+                <div id="vista-pedidos" class="vista-seccion">
+                    <div class="header-seccion"><h1>Bandeja de Entrada</h1></div>
+                    <div class="card">
+                        <h3><i class="fas fa-clock"></i> Pedidos Pendientes</h3>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: -10px; margin-bottom: 15px;">Al confirmar un pedido, los botones desaparecerán y se sumará el monto al gráfico de facturación.</p>
+
+                        <div class="tabla-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Cliente (Info)</th>
+                                        <th>Total</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-pedidos">
+                                    <!-- Se llena con JS desde la API -->
+                                </tbody>
+                            </table>
+                            <p id="mensaje-sin-pedidos" style="text-align: center; color: var(--text-muted); padding: 20px; display: none;">No hay pedidos pendientes.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VISTA: PRODUCTOS -->
+                <div id="vista-productos" class="vista-seccion">
+                    <div class="header-seccion"><h1>Gestión de Productos</h1></div>
+                    <div class="card">
+                        <h3><i class="fas fa-plus-circle"></i> Nuevo Producto</h3>
+                        <div class="form-group"><label>Nombre:</label><input type="text" id="descArticulo"></div>
+                        <div class="form-group"><label>Precio de Venta ($):</label><input type="number" id="costoArticulo"></div>
+                        <div class="form-group">
+                            <label>Categoría:</label>
+                            <select id="categoriaArticulo"><option value="">Seleccioná...</option></select>
+                        </div>
+                        <div class="form-group"><label>Foto:</label><input type="file" id="imgArticulo" accept="image/*"></div>
+                        <button class="btn-guardar" onclick="guardarArticulo()">Guardar Producto</button>
+                        <p id="mensajeArticulo" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
+
+                        <div class="tabla-container">
+                            <table><thead><tr><th>Descripción</th><th>Precio</th><th>Acción</th></tr></thead><tbody id="tabla-articulos"></tbody></table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VISTA: PROMOS -->
+                <div id="vista-promos" class="vista-seccion">
+                    <div class="header-seccion"><h1>Gestión de Promociones</h1></div>
+                    <div class="card">
+                        <h3><i class="fas fa-star"></i> Nuevo Combo / Promo</h3>
+                        <div class="form-group"><label>Nombre del Combo:</label><input type="text" id="nombrePromo"></div>
+                        <div class="form-group"><label>Precio Final ($):</label><input type="number" id="costoPromo"></div>
+                        <div class="form-group"><label>Foto:</label><input type="file" id="imgPromo" accept="image/*"></div>
+                        <div class="form-group">
+                            <label>Contenido (Cantidades de productos que incluye):</label>
+                            <div class="caja-articulos" id="lista-articulos-promo"></div>
+                        </div>
+                        <button class="btn-guardar" onclick="guardarPromocion()">Guardar Promoción</button>
+                        <p id="mensajePromo" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
+
+                        <div class="tabla-container">
+                            <table><thead><tr><th>Nombre</th><th>Precio</th><th>Acción</th></tr></thead><tbody id="tabla-promos"></tbody></table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VISTA: CATEGORÍAS -->
+                <div id="vista-categorias" class="vista-seccion">
+                    <div class="header-seccion"><h1>Gestión de Categorías</h1></div>
+                    <div class="card">
+                        <h3><i class="fas fa-tag"></i> Nueva Categoría</h3>
+                        <div class="form-group"><label>Nombre de la categoría:</label><input type="text" id="nombreCategoria"></div>
+                        <button class="btn-guardar" onclick="guardarCategoria()" style="max-width: 200px;">Guardar Categoría</button>
+                        <p id="mensajeCategoria" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
+
+                        <div class="tabla-container">
+                            <table><thead><tr><th>Nombre</th><th>Acción</th></tr></thead><tbody id="tabla-categorias"></tbody></table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VISTA: BANNERS -->
+                <div id="vista-banners" class="vista-seccion">
+                    <div class="header-seccion"><h1>Gestión de Banners</h1></div>
+                    <div class="card">
+                        <h3><i class="fas fa-image"></i> Nuevo Banner Principal</h3>
+                        <div class="form-group"><label>Título:</label><input type="text" id="tituloBanner"></div>
+                        <div class="form-group"><label>Subtítulo:</label><input type="text" id="subtituloBanner"></div>
+                        <div class="form-group"><label>Color de Fondo:</label><input type="color" id="colorBanner" value="#cc0000" style="height:50px; padding:2px;"></div>
+                        <button class="btn-guardar" onclick="guardarBanner()" style="max-width: 200px;">Guardar Banner</button>
+                        <p id="mensajeBanner" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
+
+                        <div class="tabla-container">
+                            <table><thead><tr><th>Textos</th><th>Color Base</th><th>Acción</th></tr></thead><tbody id="tabla-banners"></tbody></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- PANEL LATERAL DERECHO / CONFIGURACIÓN LOCAL -->
+        <aside class="right-panel">
+            <div class="info-panel">
+                <h3><i class="fas fa-bolt" style="color: var(--primary);"></i> Acciones Rápidas</h3>
+                <button class="btn-action-outline" onclick="cambiarVista('vista-pedidos', document.getElementById('nav-pedidos'))"><i class="fas fa-clock"></i> Ver Pedidos</button>
+                <button class="btn-action-outline" onclick="cambiarVista('vista-productos', document.getElementById('nav-productos'))"><i class="fas fa-plus"></i> Cargar Producto</button>
             </div>
 
-            <!-- PROMOS -->
-            <div id="vista-promos" class="vista-seccion">
-                <div class="header-seccion"><h1>Promociones</h1></div>
-                <div class="card">
-                    <h3>⭐ Nuevo Combo</h3>
-                    <div class="form-group"><label>Nombre:</label><input type="text" id="nombrePromo"></div>
-                    <div class="form-group"><label>Precio Final ($):</label><input type="number" id="costoPromo"></div>
-                    <div class="form-group"><label>Foto:</label><input type="file" id="imgPromo" accept="image/*"></div>
-                    <div class="form-group">
-                        <label>Contenido (Cantidades):</label>
-                        <div class="caja-articulos" id="lista-articulos-promo"></div>
-                    </div>
-                    <button class="btn-guardar" onclick="guardarPromocion()">Guardar Promoción</button>
-                    <p id="mensajePromo" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
-                    <div class="tabla-container">
-                        <table><thead><tr><th>Nombre</th><th>Precio</th><th>Acción</th></tr></thead><tbody id="tabla-promos"></tbody></table>
-                    </div>
-                </div>
-            </div>
+            <div class="info-panel">
+                <h3><i class="fas fa-store" style="color: var(--primary);"></i> Datos del Local</h3>
 
-            <!-- CATEGORÍAS -->
-            <div id="vista-categorias" class="vista-seccion">
-                <div class="header-seccion"><h1>Categorías</h1></div>
-                <div class="card">
-                    <h3>🏷️ Nueva Categoría</h3>
-                    <div class="form-group"><label>Nombre:</label><input type="text" id="nombreCategoria"></div>
-                    <button class="btn-guardar" onclick="guardarCategoria()">Guardar Categoría</button>
-                    <p id="mensajeCategoria" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
-                    <div class="tabla-container">
-                        <table><thead><tr><th>Nombre</th><th>Acción</th></tr></thead><tbody id="tabla-categorias"></tbody></table>
-                    </div>
+                <div class="form-group">
+                    <label style="font-size: 0.8rem;"><i class="fab fa-whatsapp" style="color:#25D366;"></i> WhatsApp:</label>
+                    <input type="text" id="config-wpp" placeholder="Ej: 5491122334455" style="padding: 8px;">
                 </div>
-            </div>
 
-            <!-- BANNERS -->
-            <div id="vista-banners" class="vista-seccion">
-                <div class="header-seccion"><h1>Banners</h1></div>
-                <div class="card">
-                    <h3>🖼️ Nuevo Banner</h3>
-                    <div class="form-group"><label>Título:</label><input type="text" id="tituloBanner"></div>
-                    <div class="form-group"><label>Subtítulo:</label><input type="text" id="subtituloBanner"></div>
-                    <div class="form-group"><label>Color de Fondo:</label><input type="color" id="colorBanner" value="#fa0050" style="height:40px; padding:0;"></div>
-                    <button class="btn-guardar" onclick="guardarBanner()">Guardar Banner</button>
-                    <p id="mensajeBanner" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
-                    <div class="tabla-container">
-                        <table><thead><tr><th>Banner</th><th>Color</th><th>Acción</th></tr></thead><tbody id="tabla-banners"></tbody></table>
-                    </div>
+                <div class="form-group">
+                    <label style="font-size: 0.8rem;"><i class="fab fa-instagram" style="color:#E1306C;"></i> Instagram (URL):</label>
+                    <input type="text" id="config-ig" placeholder="https://instagram.com/..." style="padding: 8px;">
                 </div>
+
+                <div class="form-group">
+                    <label style="font-size: 0.8rem;"><i class="fab fa-facebook" style="color:#1877F2;"></i> Facebook (URL):</label>
+                    <input type="text" id="config-fb" placeholder="https://facebook.com/..." style="padding: 8px;">
+                </div>
+
+                <div class="form-group">
+                    <label style="font-size: 0.8rem;"><i class="fas fa-map-marked-alt text-muted"></i> Maps (URL):</label>
+                    <input type="text" id="config-maps" placeholder="https://maps.google.com/..." style="padding: 8px;">
+                </div>
+
+                <button class="btn-guardar" onclick="guardarConfigLocal()" style="padding: 10px;">Actualizar Datos</button>
+                <p id="mensaje-config" style="font-weight:bold; margin-top:10px; min-height: 20px; font-size: 0.85rem; text-align:center;"></p>
             </div>
-        </div>
+        </aside>
     </div>
 
     <script>
         const baseUrl = 'https://localhost:7111/api';
+        let chartInstancia = null;
 
         function cambiarVista(idVista, elementoMenu) {
             document.querySelectorAll('.vista-seccion').forEach(vista => vista.classList.remove('activa'));
@@ -452,6 +745,130 @@
                 reader.onload = (e) => resolve(e.target.result);
                 reader.readAsDataURL(input.files[0]);
             });
+        }
+
+        // --- LÓGICA DE PEDIDOS PENDIENTES (CONEXIÓN API REAL) ---
+        async function cargarPedidos() {
+            try {
+                // Fetch al controlador C# de Pedidos Pendientes
+                const res = await fetch(`${baseUrl}/Pedidos/Pendientes`);
+                if (!res.ok) throw new Error("Error de red");
+                const data = await res.json();
+
+                const tbody = document.getElementById('tabla-pedidos');
+                const msjSinPedidos = document.getElementById('mensaje-sin-pedidos');
+                tbody.innerHTML = '';
+
+                if (data.length === 0) {
+                    msjSinPedidos.style.display = 'block';
+                } else {
+                    msjSinPedidos.style.display = 'none';
+                    data.forEach(item => {
+                        tbody.innerHTML += `
+                                <tr>
+                                    <td>${item.fecha}</td>
+                                    <td><strong>${item.cliente}</strong></td>
+                                    <td style="font-weight: bold; color: var(--text-main);">$${item.total}</td>
+                                    <td id="acciones-pedido-${item.id}">
+                                        <button class="btn-guardar" style="width: auto; padding: 6px 12px; font-size: 0.85rem; margin-right: 5px; margin-bottom: 5px;" onclick="cambiarEstadoPedido(${item.id}, 'Completado')"><i class="fas fa-check"></i> Completado</button>
+                                        <button class="btn-borrar" style="margin-bottom: 5px;" onclick="cambiarEstadoPedido(${item.id}, 'Cancelado')"><i class="fas fa-times"></i> Cancelar</button>
+                                    </td>
+                                </tr>`;
+                    });
+                }
+            } catch (e) {
+                console.error("No se pudieron cargar los pedidos, verifica la API C#", e);
+            }
+        }
+
+        async function cambiarEstadoPedido(idPedido, nuevoEstado) {
+            if (confirm(`¿Marcar este pedido como ${nuevoEstado}?`)) {
+                try {
+                    // Manda el nuevo estado al C#
+                    await fetch(`${baseUrl}/Pedidos/${idPedido}/Estado`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(nuevoEstado)
+                    });
+
+                    const celdaAcciones = document.getElementById(`acciones-pedido-${idPedido}`);
+                    const colorTexto = nuevoEstado === 'Completado' ? 'var(--success)' : 'var(--danger)';
+                    const icono = nuevoEstado === 'Completado' ? 'fa-check-circle' : 'fa-times-circle';
+
+                    // Cambia visualmente el botón por texto
+                    celdaAcciones.innerHTML = `<span style="font-weight: bold; color: ${colorTexto};"><i class="fas ${icono}"></i> ${nuevoEstado}</span>`;
+
+                    // Llama a estadísticas para actualizar el gráfico
+                    cargarEstadisticas();
+                } catch (e) {
+                    alert("Error al actualizar el estado");
+                }
+            }
+        }
+
+        // --- LÓGICA DE ESTADÍSTICAS (CONEXIÓN API REAL) ---
+        async function cargarEstadisticas() {
+            const select = document.getElementById('selectYear');
+            if (select.options.length === 0) {
+                const anioActual = new Date().getFullYear();
+                const anioInicio = 2026;
+                for (let i = anioActual; i >= anioInicio; i--) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.text = i;
+                    select.appendChild(option);
+                }
+            }
+
+            const anioSeleccionado = select.value;
+
+            try {
+                // Fetch al controlador C# de Estadísticas con el año
+                const res = await fetch(`${baseUrl}/Estadisticas/Ventas?anio=${anioSeleccionado}`);
+                if (!res.ok) throw new Error("Error de red");
+                const data = await res.json();
+
+                const nombresMeses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                const labels = data.map(d => nombresMeses[d.mes - 1] || d.mes);
+                const totales = data.map(d => d.total);
+
+                const ctx = document.getElementById('graficoVentas').getContext('2d');
+                if (chartInstancia) { chartInstancia.destroy(); }
+
+                chartInstancia = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: `Facturación ${anioSeleccionado} ($)`,
+                            data: totales,
+                            backgroundColor: '#cc0000',
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+            } catch (e) {
+                console.error("Error cargando estadísticas, verifica la API C#", e);
+            }
+        }
+
+        // --- LÓGICA DE CONFIGURACIÓN Y CRUD ---
+        async function guardarConfigLocal() {
+            const wpp = document.getElementById('config-wpp').value;
+            const ig = document.getElementById('config-ig').value;
+            const fb = document.getElementById('config-fb').value;
+            const maps = document.getElementById('config-maps').value;
+            const msj = document.getElementById('mensaje-config');
+
+            // TODO: Crear endpoint C# de Configuración y hacer fetch acá
+            msj.innerText = "✅ Datos actualizados (Solo visual por ahora).";
+            msj.style.color = "var(--success)";
+            setTimeout(() => msj.innerText = "", 3000);
         }
 
         async function cargarEnvio() {
@@ -559,7 +976,7 @@
                 const data = await res.json();
                 const tbody = document.getElementById('tabla-banners');
                 tbody.innerHTML = '';
-                data.forEach(item => { tbody.innerHTML += `<tr><td><strong>${item.titulo}</strong><br><small>${item.subtitulo}</small></td><td><div style="width:30px;height:30px;background:${item.backgroundColor};border-radius:4px;"></div></td><td><button class="btn-borrar" onclick="eliminarBanner(${item.codBanner})">Eliminar</button></td></tr>`; });
+                data.forEach(item => { tbody.innerHTML += `<tr><td><strong>${item.titulo}</strong><br><small>${item.subtitulo}</small></td><td><div style="width:30px;height:30px;background:${item.backgroundColor};border-radius:4px;border:1px solid #ddd;"></div></td><td><button class="btn-borrar" onclick="eliminarBanner(${item.codBanner})">Eliminar</button></td></tr>`; });
             } catch (e) { }
         }
 
@@ -574,7 +991,15 @@
 
         async function eliminarBanner(id) { if (confirm("¿Borrar banner?")) { await fetch(`${baseUrl}/Banners/${id}`, { method: 'DELETE' }); cargarBanners(); } }
 
-        window.onload = () => { cargarEnvio(); cargarArticulos(); cargarPromociones(); cargarCategorias(); cargarBanners(); };
+        window.onload = () => {
+            cargarPedidos();
+            cargarEstadisticas();
+            cargarEnvio();
+            cargarArticulos();
+            cargarPromociones();
+            cargarCategorias();
+            cargarBanners();
+        };
     </script>
 </body>
 </html>
