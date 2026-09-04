@@ -728,7 +728,7 @@
     </div>
 
     <script>
-        const baseUrl = 'https://localhost:7111/api';
+        const baseUrl = 'ngrok http https://localhost:7111/api';
         let chartInstancia = null;
 
         function cambiarVista(idVista, elementoMenu) {
@@ -747,10 +747,9 @@
             });
         }
 
-        // --- LÓGICA DE PEDIDOS PENDIENTES (CONEXIÓN API REAL) ---
+        // --- LÓGICA DE PEDIDOS PENDIENTES ---
         async function cargarPedidos() {
             try {
-                // Fetch al controlador C# de Pedidos Pendientes
                 const res = await fetch(`${baseUrl}/Pedidos/Pendientes`);
                 if (!res.ok) throw new Error("Error de red");
                 const data = await res.json();
@@ -765,26 +764,23 @@
                     msjSinPedidos.style.display = 'none';
                     data.forEach(item => {
                         tbody.innerHTML += `
-                                <tr>
-                                    <td>${item.fecha}</td>
-                                    <td><strong>${item.cliente}</strong></td>
-                                    <td style="font-weight: bold; color: var(--text-main);">$${item.total}</td>
-                                    <td id="acciones-pedido-${item.id}">
-                                        <button class="btn-guardar" style="width: auto; padding: 6px 12px; font-size: 0.85rem; margin-right: 5px; margin-bottom: 5px;" onclick="cambiarEstadoPedido(${item.id}, 'Completado')"><i class="fas fa-check"></i> Completado</button>
-                                        <button class="btn-borrar" style="margin-bottom: 5px;" onclick="cambiarEstadoPedido(${item.id}, 'Cancelado')"><i class="fas fa-times"></i> Cancelar</button>
-                                    </td>
-                                </tr>`;
+                                    <tr>
+                                        <td>${item.fecha}</td>
+                                        <td><strong>${item.cliente}</strong></td>
+                                        <td style="font-weight: bold; color: var(--text-main);">$${item.total}</td>
+                                        <td id="acciones-pedido-${item.id}">
+                                            <button class="btn-guardar" style="width: auto; padding: 6px 12px; font-size: 0.85rem; margin-right: 5px; margin-bottom: 5px;" onclick="cambiarEstadoPedido(${item.id}, 'Completado')"><i class="fas fa-check"></i> Completado</button>
+                                            <button class="btn-borrar" style="margin-bottom: 5px;" onclick="cambiarEstadoPedido(${item.id}, 'Cancelado')"><i class="fas fa-times"></i> Cancelar</button>
+                                        </td>
+                                    </tr>`;
                     });
                 }
-            } catch (e) {
-                console.error("No se pudieron cargar los pedidos, verifica la API C#", e);
-            }
+            } catch (e) { console.error("No se pudieron cargar los pedidos", e); }
         }
 
         async function cambiarEstadoPedido(idPedido, nuevoEstado) {
             if (confirm(`¿Marcar este pedido como ${nuevoEstado}?`)) {
                 try {
-                    // Manda el nuevo estado al C#
                     await fetch(`${baseUrl}/Pedidos/${idPedido}/Estado`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
@@ -795,18 +791,13 @@
                     const colorTexto = nuevoEstado === 'Completado' ? 'var(--success)' : 'var(--danger)';
                     const icono = nuevoEstado === 'Completado' ? 'fa-check-circle' : 'fa-times-circle';
 
-                    // Cambia visualmente el botón por texto
                     celdaAcciones.innerHTML = `<span style="font-weight: bold; color: ${colorTexto};"><i class="fas ${icono}"></i> ${nuevoEstado}</span>`;
-
-                    // Llama a estadísticas para actualizar el gráfico
                     cargarEstadisticas();
-                } catch (e) {
-                    alert("Error al actualizar el estado");
-                }
+                } catch (e) { alert("Error al actualizar el estado"); }
             }
         }
 
-        // --- LÓGICA DE ESTADÍSTICAS (CONEXIÓN API REAL) ---
+        // --- LÓGICA DE ESTADÍSTICAS ---
         async function cargarEstadisticas() {
             const select = document.getElementById('selectYear');
             if (select.options.length === 0) {
@@ -823,7 +814,6 @@
             const anioSeleccionado = select.value;
 
             try {
-                // Fetch al controlador C# de Estadísticas con el año
                 const res = await fetch(`${baseUrl}/Estadisticas/Ventas?anio=${anioSeleccionado}`);
                 if (!res.ok) throw new Error("Error de red");
                 const data = await res.json();
@@ -852,12 +842,23 @@
                         scales: { y: { beginAtZero: true } }
                     }
                 });
-            } catch (e) {
-                console.error("Error cargando estadísticas, verifica la API C#", e);
-            }
+            } catch (e) { console.error("Error cargando estadísticas", e); }
         }
 
-        // --- LÓGICA DE CONFIGURACIÓN Y CRUD ---
+        // --- LÓGICA DE CONFIGURACIÓN ---
+        async function cargarConfigLocal() {
+            try {
+                const res = await fetch(`${baseUrl}/Configuracion`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.whatsApp) document.getElementById('config-wpp').value = data.whatsApp;
+                    if (data.instagram) document.getElementById('config-ig').value = data.instagram;
+                    if (data.facebook) document.getElementById('config-fb').value = data.facebook;
+                    if (data.googleMaps) document.getElementById('config-maps').value = data.googleMaps;
+                }
+            } catch (e) { console.error("Error al cargar configuración", e); }
+        }
+
         async function guardarConfigLocal() {
             const wpp = document.getElementById('config-wpp').value;
             const ig = document.getElementById('config-ig').value;
@@ -865,9 +866,21 @@
             const maps = document.getElementById('config-maps').value;
             const msj = document.getElementById('mensaje-config');
 
-            // TODO: Crear endpoint C# de Configuración y hacer fetch acá
-            msj.innerText = "✅ Datos actualizados (Solo visual por ahora).";
-            msj.style.color = "var(--success)";
+            try {
+                const res = await fetch(`${baseUrl}/Configuracion`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ whatsApp: wpp, instagram: ig, facebook: fb, googleMaps: maps })
+                });
+
+                if (res.ok) {
+                    msj.innerText = "✅ Datos actualizados.";
+                    msj.style.color = "var(--success)";
+                }
+            } catch (e) {
+                msj.innerText = "❌ Error al guardar";
+                msj.style.color = "var(--danger)";
+            }
             setTimeout(() => msj.innerText = "", 3000);
         }
 
@@ -888,6 +901,7 @@
             } catch (e) { msj.innerText = "❌ Error al guardar"; msj.style.color = "var(--danger)"; }
         }
 
+        // --- LÓGICA DE PRODUCTOS ---
         async function cargarArticulos() {
             try {
                 const res = await fetch(`${baseUrl}/Articulos`);
@@ -992,6 +1006,7 @@
         async function eliminarBanner(id) { if (confirm("¿Borrar banner?")) { await fetch(`${baseUrl}/Banners/${id}`, { method: 'DELETE' }); cargarBanners(); } }
 
         window.onload = () => {
+            cargarConfigLocal(); // Se agregó esta línea clave
             cargarPedidos();
             cargarEstadisticas();
             cargarEnvio();

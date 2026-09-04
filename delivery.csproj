@@ -24,6 +24,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="wwwroot\admin.html" />
+    <None Include="wwwroot\Gemini_Generated_Image_s0p106s0p106s0p1 %281%29.jfif" />
+    <None Include="wwwroot\index.html" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\delivery.Data\delivery.Data.csproj" />
   </ItemGroup>
 

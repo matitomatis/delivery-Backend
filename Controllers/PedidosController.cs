@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using delivery.Data;
+using delivery.Models;
 using delivery.Repositories;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -23,18 +26,51 @@ namespace delivery.Controllers
         {
             var pedidos = await _context.Pedidos
                 .Where(p => p.Estado == "Pendiente")
-                // Si tenés el Cliente relacionado, podés hacer un .Include(p => p.Cliente) acá
                 .Select(p => new
                 {
-                    id = p.CodPedido, // Cambiar a p.CodPedido si así lo tenés en el model
+                    id = p.CodPedido,
                     fecha = p.Fecha.ToString("dd/MM/yyyy HH:mm"),
-                    cliente = "Cliente", // Acá engancharías p.Cliente.Nombre si tenés la relación
+                    cliente = "Cliente", // (Opcional: Si tenés la relación navegacional, podés usar p.Cliente.Nombre)
                     total = p.Total
                 })
-                .OrderByDescending(p => p.id) // Los más nuevos primero
+                .OrderByDescending(p => p.id)
                 .ToListAsync();
 
             return Ok(pedidos);
+        }
+
+        // POST: api/Pedidos/Nuevo
+        [HttpPost("Nuevo")]
+        public async Task<IActionResult> CrearPedido([FromBody] PedidoNuevoDto dto)
+        {
+            // 1. Creamos al cliente en la base de datos
+            var nuevoCliente = new Cliente
+            {
+                Nombre = dto.Cliente
+            };
+
+            _context.Clientes.Add(nuevoCliente);
+            await _context.SaveChangesAsync();
+
+            // 2. Armamos el pedido vinculando el ID del cliente y la forma de pago
+            var nuevoPedido = new Pedido
+            {
+                Fecha = DateTime.Now,
+                Estado = "Pendiente",
+                Total = dto.Total,
+
+                // Vinculamos el cliente que acabamos de crear
+                CodCliente = nuevoCliente.CodCliente,
+
+                // ¡LA SOLUCIÓN AL ERROR! Le pasamos un ID válido de forma de pago
+                CodFormaPago = 1,
+                CodTipoEnvio = 1
+            };
+
+            _context.Pedidos.Add(nuevoPedido);
+            await _context.SaveChangesAsync();
+
+            return Ok();
         }
 
         // PUT: api/Pedidos/5/Estado
@@ -49,5 +85,12 @@ namespace delivery.Controllers
 
             return Ok(new { mensaje = "Estado actualizado" });
         }
+    }
+
+    // Fuera del controlador para mantener el código ordenado
+    public class PedidoNuevoDto
+    {
+        public string Cliente { get; set; }
+        public decimal Total { get; set; }
     }
 }
