@@ -19,6 +19,7 @@
             --border: #e5e7eb;
             --success: #10b981;
             --danger: #ef4444;
+            --info: #3b82f6;
         }
 
         * {
@@ -334,6 +335,16 @@
                 background: var(--primary-hover);
             }
 
+        .btn-cancelar {
+            background: var(--text-muted);
+            margin-top: 10px;
+            display: none;
+        }
+
+            .btn-cancelar:hover {
+                background: #4b5563;
+            }
+
         .input-rapido {
             display: flex;
             gap: 10px;
@@ -381,7 +392,7 @@
             background: transparent;
             color: var(--danger);
             border: 1px solid var(--danger);
-            padding: 6px 12px;
+            padding: 6px 10px;
             border-radius: 6px;
             cursor: pointer;
             transition: 0.2s;
@@ -389,6 +400,22 @@
 
             .btn-borrar:hover {
                 background: var(--danger);
+                color: white;
+            }
+
+        .btn-editar {
+            background: transparent;
+            color: var(--info);
+            border: 1px solid var(--info);
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-right: 5px;
+        }
+
+            .btn-editar:hover {
+                background: var(--info);
                 color: white;
             }
 
@@ -521,12 +548,13 @@
             </div>
             <div class="menu-label">Principal</div>
             <a class="nav-item active" id="nav-dashboard" onclick="cambiarVista('vista-dashboard', this)"><i class="fas fa-chart-line"></i> Dashboard</a>
+            <a class="nav-item" id="nav-pedidos" onclick="cambiarVista('vista-pedidos', this)"><i class="fas fa-shopping-bag"></i> Pedidos</a>
 
             <div class="menu-label">Gestión</div>
-            <a class="nav-item" id="nav-pedidos" onclick="cambiarVista('vista-pedidos', this)"><i class="fas fa-shopping-bag"></i> Pedidos</a>
             <a class="nav-item" id="nav-productos" onclick="cambiarVista('vista-productos', this)"><i class="fas fa-box"></i> Productos</a>
             <a class="nav-item" id="nav-promos" onclick="cambiarVista('vista-promos', this)"><i class="fas fa-star"></i> Promociones</a>
             <a class="nav-item" id="nav-categorias" onclick="cambiarVista('vista-categorias', this)"><i class="fas fa-tags"></i> Categorías</a>
+            <a class="nav-item" id="nav-rubros" onclick="cambiarVista('vista-rubros', this)"><i class="fas fa-layer-group"></i> Rubros</a>
             <a class="nav-item" id="nav-banners" onclick="cambiarVista('vista-banners', this)"><i class="fas fa-image"></i> Banners</a>
         </aside>
 
@@ -606,7 +634,6 @@
                                     </tr>
                                 </thead>
                                 <tbody id="tabla-pedidos">
-                                    <!-- Se llena con JS desde la API -->
                                 </tbody>
                             </table>
                             <p id="mensaje-sin-pedidos" style="text-align: center; color: var(--text-muted); padding: 20px; display: none;">No hay pedidos pendientes.</p>
@@ -618,15 +645,18 @@
                 <div id="vista-productos" class="vista-seccion">
                     <div class="header-seccion"><h1>Gestión de Productos</h1></div>
                     <div class="card">
-                        <h3><i class="fas fa-plus-circle"></i> Nuevo Producto</h3>
+                        <h3 id="titulo-form-articulo"><i class="fas fa-plus-circle"></i> Nuevo Producto</h3>
                         <div class="form-group"><label>Nombre:</label><input type="text" id="descArticulo"></div>
                         <div class="form-group"><label>Precio de Venta ($):</label><input type="number" id="costoArticulo"></div>
                         <div class="form-group">
                             <label>Categoría:</label>
                             <select id="categoriaArticulo"><option value="">Seleccioná...</option></select>
                         </div>
-                        <div class="form-group"><label>Foto:</label><input type="file" id="imgArticulo" accept="image/*"></div>
-                        <button class="btn-guardar" onclick="guardarArticulo()">Guardar Producto</button>
+                        <div class="form-group"><label>Foto (Opcional si editás):</label><input type="file" id="imgArticulo" accept="image/*"></div>
+
+                        <button class="btn-guardar" id="btn-submit-articulo" onclick="guardarArticulo()">Guardar Producto</button>
+                        <button class="btn-guardar btn-cancelar" id="btn-cancelar-articulo" onclick="cancelarEdicionArticulo()">Cancelar Edición</button>
+
                         <p id="mensajeArticulo" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
 
                         <div class="tabla-container">
@@ -639,15 +669,18 @@
                 <div id="vista-promos" class="vista-seccion">
                     <div class="header-seccion"><h1>Gestión de Promociones</h1></div>
                     <div class="card">
-                        <h3><i class="fas fa-star"></i> Nuevo Combo / Promo</h3>
+                        <h3 id="titulo-form-promo"><i class="fas fa-star"></i> Nuevo Combo / Promo</h3>
                         <div class="form-group"><label>Nombre del Combo:</label><input type="text" id="nombrePromo"></div>
                         <div class="form-group"><label>Precio Final ($):</label><input type="number" id="costoPromo"></div>
-                        <div class="form-group"><label>Foto:</label><input type="file" id="imgPromo" accept="image/*"></div>
+                        <div class="form-group"><label>Foto (Opcional si editás):</label><input type="file" id="imgPromo" accept="image/*"></div>
                         <div class="form-group">
                             <label>Contenido (Cantidades de productos que incluye):</label>
                             <div class="caja-articulos" id="lista-articulos-promo"></div>
                         </div>
-                        <button class="btn-guardar" onclick="guardarPromocion()">Guardar Promoción</button>
+
+                        <button class="btn-guardar" id="btn-submit-promo" onclick="guardarPromocion()">Guardar Promoción</button>
+                        <button class="btn-guardar btn-cancelar" id="btn-cancelar-promo" onclick="cancelarEdicionPromo()">Cancelar Edición</button>
+
                         <p id="mensajePromo" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
 
                         <div class="tabla-container">
@@ -656,13 +689,39 @@
                     </div>
                 </div>
 
+                <!-- VISTA: RUBROS -->
+                <div id="vista-rubros" class="vista-seccion">
+                    <div class="header-seccion"><h1>Gestión de Rubros</h1></div>
+                    <div class="card">
+                        <h3 id="titulo-form-rubro"><i class="fas fa-layer-group"></i> Nuevo Rubro</h3>
+                        <div class="form-group"><label>Nombre (Ej: Regalería):</label><input type="text" id="nombreRubro"></div>
+
+                        <button class="btn-guardar" id="btn-submit-rubro" onclick="guardarRubro()" style="max-width: 200px;">Guardar</button>
+                        <button class="btn-guardar btn-cancelar" id="btn-cancelar-rubro" onclick="cancelarEdicionRubro()" style="max-width: 200px;">Cancelar</button>
+
+                        <p id="mensajeRubro" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
+
+                        <div class="tabla-container">
+                            <table><thead><tr><th>Nombre</th><th>Acción</th></tr></thead><tbody id="tabla-rubros"></tbody></table>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- VISTA: CATEGORÍAS -->
                 <div id="vista-categorias" class="vista-seccion">
                     <div class="header-seccion"><h1>Gestión de Categorías</h1></div>
                     <div class="card">
-                        <h3><i class="fas fa-tag"></i> Nueva Categoría</h3>
-                        <div class="form-group"><label>Nombre de la categoría:</label><input type="text" id="nombreCategoria"></div>
-                        <button class="btn-guardar" onclick="guardarCategoria()" style="max-width: 200px;">Guardar Categoría</button>
+                        <h3 id="titulo-form-categoria"><i class="fas fa-tag"></i> Nueva Categoría</h3>
+                        <div class="form-group"><label>Nombre de la categoría (Ej: ☕ Tazas):</label><input type="text" id="nombreCategoria"></div>
+
+                        <div class="form-group">
+                            <label>Pertenece al Rubro:</label>
+                            <select id="rubroCategoria"><option value="">Seleccioná...</option></select>
+                        </div>
+
+                        <button class="btn-guardar" id="btn-submit-categoria" onclick="guardarCategoria()" style="max-width: 200px;">Guardar Categoría</button>
+                        <button class="btn-guardar btn-cancelar" id="btn-cancelar-categoria" onclick="cancelarEdicionCategoria()" style="max-width: 200px;">Cancelar</button>
+
                         <p id="mensajeCategoria" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
 
                         <div class="tabla-container">
@@ -728,8 +787,14 @@
     </div>
 
     <script>
-        const baseUrl = 'ngrok http https://localhost:7111/api';
+        const baseUrl = '/api';
         let chartInstancia = null;
+
+        // Variables de estado para saber si estamos editando
+        let idRubroEditando = 0;
+        let idCategoriaEditando = 0;
+        let idArticuloEditando = 0;
+        let idPromoEditando = 0;
 
         function cambiarVista(idVista, elementoMenu) {
             document.querySelectorAll('.vista-seccion').forEach(vista => vista.classList.remove('activa'));
@@ -747,105 +812,72 @@
             });
         }
 
-        // --- LÓGICA DE PEDIDOS PENDIENTES ---
+        // --- LÓGICA DE PEDIDOS ---
         async function cargarPedidos() {
             try {
                 const res = await fetch(`${baseUrl}/Pedidos/Pendientes`);
                 if (!res.ok) throw new Error("Error de red");
                 const data = await res.json();
-
                 const tbody = document.getElementById('tabla-pedidos');
                 const msjSinPedidos = document.getElementById('mensaje-sin-pedidos');
                 tbody.innerHTML = '';
-
                 if (data.length === 0) {
                     msjSinPedidos.style.display = 'block';
                 } else {
                     msjSinPedidos.style.display = 'none';
                     data.forEach(item => {
                         tbody.innerHTML += `
-                                    <tr>
-                                        <td>${item.fecha}</td>
-                                        <td><strong>${item.cliente}</strong></td>
-                                        <td style="font-weight: bold; color: var(--text-main);">$${item.total}</td>
-                                        <td id="acciones-pedido-${item.id}">
-                                            <button class="btn-guardar" style="width: auto; padding: 6px 12px; font-size: 0.85rem; margin-right: 5px; margin-bottom: 5px;" onclick="cambiarEstadoPedido(${item.id}, 'Completado')"><i class="fas fa-check"></i> Completado</button>
-                                            <button class="btn-borrar" style="margin-bottom: 5px;" onclick="cambiarEstadoPedido(${item.id}, 'Cancelado')"><i class="fas fa-times"></i> Cancelar</button>
-                                        </td>
-                                    </tr>`;
+                            <tr>
+                                <td>${item.fecha}</td>
+                                <td><strong>${item.cliente}</strong></td>
+                                <td style="font-weight: bold; color: var(--text-main);">$${item.total}</td>
+                                <td id="acciones-pedido-${item.id}">
+                                    <button class="btn-guardar" style="width: auto; padding: 6px 12px; font-size: 0.85rem; margin-right: 5px; margin-bottom: 5px;" onclick="cambiarEstadoPedido(${item.id}, 'Completado')"><i class="fas fa-check"></i></button>
+                                    <button class="btn-borrar" style="margin-bottom: 5px;" onclick="cambiarEstadoPedido(${item.id}, 'Cancelado')"><i class="fas fa-times"></i></button>
+                                </td>
+                            </tr>`;
                     });
                 }
-            } catch (e) { console.error("No se pudieron cargar los pedidos", e); }
+            } catch (e) { }
         }
 
         async function cambiarEstadoPedido(idPedido, nuevoEstado) {
             if (confirm(`¿Marcar este pedido como ${nuevoEstado}?`)) {
                 try {
-                    await fetch(`${baseUrl}/Pedidos/${idPedido}/Estado`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(nuevoEstado)
-                    });
-
-                    const celdaAcciones = document.getElementById(`acciones-pedido-${idPedido}`);
-                    const colorTexto = nuevoEstado === 'Completado' ? 'var(--success)' : 'var(--danger)';
-                    const icono = nuevoEstado === 'Completado' ? 'fa-check-circle' : 'fa-times-circle';
-
-                    celdaAcciones.innerHTML = `<span style="font-weight: bold; color: ${colorTexto};"><i class="fas ${icono}"></i> ${nuevoEstado}</span>`;
+                    await fetch(`${baseUrl}/Pedidos/${idPedido}/Estado`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(nuevoEstado) });
                     cargarEstadisticas();
-                } catch (e) { alert("Error al actualizar el estado"); }
+                    cargarPedidos();
+                } catch (e) { }
             }
         }
 
-        // --- LÓGICA DE ESTADÍSTICAS ---
+        // --- LÓGICA DE ESTADÍSTICAS Y CONFIGURACIÓN ---
         async function cargarEstadisticas() {
             const select = document.getElementById('selectYear');
             if (select.options.length === 0) {
                 const anioActual = new Date().getFullYear();
-                const anioInicio = 2026;
-                for (let i = anioActual; i >= anioInicio; i--) {
+                for (let i = anioActual; i >= 2026; i--) {
                     const option = document.createElement('option');
-                    option.value = i;
-                    option.text = i;
-                    select.appendChild(option);
+                    option.value = i; option.text = i; select.appendChild(option);
                 }
             }
-
             const anioSeleccionado = select.value;
-
             try {
                 const res = await fetch(`${baseUrl}/Estadisticas/Ventas?anio=${anioSeleccionado}`);
-                if (!res.ok) throw new Error("Error de red");
+                if (!res.ok) throw new Error("Error");
                 const data = await res.json();
-
                 const nombresMeses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
                 const labels = data.map(d => nombresMeses[d.mes - 1] || d.mes);
                 const totales = data.map(d => d.total);
-
                 const ctx = document.getElementById('graficoVentas').getContext('2d');
                 if (chartInstancia) { chartInstancia.destroy(); }
-
                 chartInstancia = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: `Facturación ${anioSeleccionado} ($)`,
-                            data: totales,
-                            backgroundColor: '#cc0000',
-                            borderRadius: 6
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: { y: { beginAtZero: true } }
-                    }
+                    type: 'bar', data: { labels: labels, datasets: [{ label: `Facturación ${anioSeleccionado} ($)`, data: totales, backgroundColor: '#cc0000', borderRadius: 6 }] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
                 });
-            } catch (e) { console.error("Error cargando estadísticas", e); }
+            } catch (e) { }
         }
 
-        // --- LÓGICA DE CONFIGURACIÓN ---
         async function cargarConfigLocal() {
             try {
                 const res = await fetch(`${baseUrl}/Configuracion`);
@@ -856,31 +888,16 @@
                     if (data.facebook) document.getElementById('config-fb').value = data.facebook;
                     if (data.googleMaps) document.getElementById('config-maps').value = data.googleMaps;
                 }
-            } catch (e) { console.error("Error al cargar configuración", e); }
+            } catch (e) { }
         }
 
         async function guardarConfigLocal() {
-            const wpp = document.getElementById('config-wpp').value;
-            const ig = document.getElementById('config-ig').value;
-            const fb = document.getElementById('config-fb').value;
-            const maps = document.getElementById('config-maps').value;
+            const payload = { whatsApp: document.getElementById('config-wpp').value, instagram: document.getElementById('config-ig').value, facebook: document.getElementById('config-fb').value, googleMaps: document.getElementById('config-maps').value };
             const msj = document.getElementById('mensaje-config');
-
             try {
-                const res = await fetch(`${baseUrl}/Configuracion`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ whatsApp: wpp, instagram: ig, facebook: fb, googleMaps: maps })
-                });
-
-                if (res.ok) {
-                    msj.innerText = "✅ Datos actualizados.";
-                    msj.style.color = "var(--success)";
-                }
-            } catch (e) {
-                msj.innerText = "❌ Error al guardar";
-                msj.style.color = "var(--danger)";
-            }
+                const res = await fetch(`${baseUrl}/Configuracion`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (res.ok) { msj.innerText = "✅ Datos actualizados."; msj.style.color = "var(--success)"; }
+            } catch (e) { msj.innerText = "❌ Error al guardar"; msj.style.color = "var(--danger)"; }
             setTimeout(() => msj.innerText = "", 3000);
         }
 
@@ -898,8 +915,156 @@
             try {
                 const res = await fetch(`${baseUrl}/TarifaEnvio`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: costo });
                 if (res.ok) { msj.innerText = "✅ Tarifa actualizada."; msj.style.color = "var(--success)"; setTimeout(() => msj.innerText = "", 3000); }
-            } catch (e) { msj.innerText = "❌ Error al guardar"; msj.style.color = "var(--danger)"; }
+            } catch (e) { }
         }
+
+        // --- LÓGICA DE RUBROS ---
+        async function cargarRubros() {
+            try {
+                const res = await fetch(`${baseUrl}/Rubros`);
+                const data = await res.json();
+                const tbody = document.getElementById('tabla-rubros');
+                const selectRubroCategoria = document.getElementById('rubroCategoria');
+
+                tbody.innerHTML = '';
+                selectRubroCategoria.innerHTML = '<option value="">Seleccioná...</option>';
+
+                data.forEach(item => {
+                    const id = item.codRubro !== undefined ? item.codRubro : item.CodRubro;
+                    const nombre = item.nombre !== undefined ? item.nombre : item.Nombre;
+                    const nombreSeguro = nombre.replace(/'/g, "\\'");
+
+                    tbody.innerHTML += `<tr>
+                        <td><strong>${nombre}</strong></td>
+                        <td>
+                            <button class="btn-editar" onclick="prepararEdicionRubro(${id}, '${nombreSeguro}')"><i class="fas fa-pen"></i></button>
+                            <button class="btn-borrar" onclick="eliminarRubro(${id})"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>`;
+                    selectRubroCategoria.innerHTML += `<option value="${id}">${nombre}</option>`;
+                });
+            } catch (e) { }
+        }
+
+        function prepararEdicionRubro(id, nombre) {
+            idRubroEditando = id;
+            document.getElementById('nombreRubro').value = nombre;
+            document.getElementById('titulo-form-rubro').innerHTML = '<i class="fas fa-pen"></i> Editando Rubro';
+            document.getElementById('btn-submit-rubro').innerText = 'Actualizar Rubro';
+            document.getElementById('btn-cancelar-rubro').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function cancelarEdicionRubro() {
+            idRubroEditando = 0;
+            document.getElementById('nombreRubro').value = '';
+            document.getElementById('titulo-form-rubro').innerHTML = '<i class="fas fa-layer-group"></i> Nuevo Rubro';
+            document.getElementById('btn-submit-rubro').innerText = 'Guardar';
+            document.getElementById('btn-cancelar-rubro').style.display = 'none';
+        }
+
+        async function guardarRubro() {
+            const nombre = document.getElementById('nombreRubro').value;
+            const msj = document.getElementById('mensajeRubro');
+            if (!nombre) return;
+
+            const payload = { codRubro: idRubroEditando, nombre: nombre };
+            const url = idRubroEditando > 0 ? `${baseUrl}/Rubros/${idRubroEditando}` : `${baseUrl}/Rubros`;
+            const metodo = idRubroEditando > 0 ? 'PUT' : 'POST';
+
+            try {
+                const res = await fetch(url, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (res.ok) {
+                    msj.innerText = "✅ Guardado con éxito"; msj.style.color = "var(--success)";
+                    cancelarEdicionRubro();
+                    cargarRubros();
+                    setTimeout(() => msj.innerText = "", 3000);
+                }
+            } catch (e) { msj.innerText = "❌ Error"; msj.style.color = "var(--danger)"; }
+        }
+
+        async function eliminarRubro(id) {
+            if (confirm("¿Borrar rubro? Se borrarán las relaciones.")) {
+                await fetch(`${baseUrl}/Rubros/${id}`, { method: 'DELETE' });
+                cargarRubros();
+            }
+        }
+
+        // --- LÓGICA DE CATEGORÍAS ---
+        async function cargarCategorias() {
+            try {
+                const res = await fetch(`${baseUrl}/Categorias`);
+                const data = await res.json();
+                document.getElementById('metric-cat').innerText = data.length;
+                const tbody = document.getElementById('tabla-categorias');
+                const selectArticulo = document.getElementById('categoriaArticulo');
+
+                tbody.innerHTML = '';
+                selectArticulo.innerHTML = '<option value="">Seleccioná...</option>';
+
+                data.forEach(item => {
+                    const id = item.codCategoria !== undefined ? item.codCategoria : item.CodCategoria;
+                    const nombre = item.nombre !== undefined ? item.nombre : item.Nombre;
+                    const codRubro = item.codRubro !== undefined ? item.codRubro : item.CodRubro;
+                    const nombreSeguro = nombre.replace(/'/g, "\\'");
+
+                    tbody.innerHTML += `<tr>
+                        <td><strong>${nombre}</strong></td>
+                        <td>
+                            <button class="btn-editar" onclick="prepararEdicionCategoria(${id}, '${nombreSeguro}', ${codRubro})"><i class="fas fa-pen"></i></button>
+                            <button class="btn-borrar" onclick="eliminarCategoria(${id})"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>`;
+                    selectArticulo.innerHTML += `<option value="${id}">${nombre}</option>`;
+                });
+            } catch (e) { }
+        }
+
+        function prepararEdicionCategoria(id, nombre, codRubro) {
+            idCategoriaEditando = id;
+            document.getElementById('nombreCategoria').value = nombre;
+            document.getElementById('rubroCategoria').value = codRubro || "";
+            document.getElementById('titulo-form-categoria').innerHTML = '<i class="fas fa-pen"></i> Editando Categoría';
+            document.getElementById('btn-submit-categoria').innerText = 'Actualizar Categoría';
+            document.getElementById('btn-cancelar-categoria').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function cancelarEdicionCategoria() {
+            idCategoriaEditando = 0;
+            document.getElementById('nombreCategoria').value = '';
+            document.getElementById('rubroCategoria').value = '';
+            document.getElementById('titulo-form-categoria').innerHTML = '<i class="fas fa-tag"></i> Nueva Categoría';
+            document.getElementById('btn-submit-categoria').innerText = 'Guardar Categoría';
+            document.getElementById('btn-cancelar-categoria').style.display = 'none';
+        }
+
+        async function guardarCategoria() {
+            const nombre = document.getElementById('nombreCategoria').value;
+            const rubroId = document.getElementById('rubroCategoria').value;
+            const msj = document.getElementById('mensajeCategoria');
+
+            if (!nombre || !rubroId || rubroId === "undefined" || rubroId === "") {
+                msj.innerText = "⚠️ Completá el nombre y seleccioná un rubro"; msj.style.color = "var(--danger)"; setTimeout(() => msj.innerText = "", 3000);
+                return;
+            }
+
+            const payload = { codCategoria: idCategoriaEditando, nombre: nombre, codRubro: parseInt(rubroId) };
+            const url = idCategoriaEditando > 0 ? `${baseUrl}/Categorias/${idCategoriaEditando}` : `${baseUrl}/Categorias`;
+            const metodo = idCategoriaEditando > 0 ? 'PUT' : 'POST';
+
+            try {
+                const res = await fetch(url, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (res.ok) {
+                    msj.innerText = "✅ Guardada"; msj.style.color = "var(--success)";
+                    cancelarEdicionCategoria();
+                    cargarCategorias();
+                    setTimeout(() => msj.innerText = "", 3000);
+                } else { msj.innerText = "❌ Error"; msj.style.color = "var(--danger)"; }
+            } catch (e) { msj.innerText = "❌ Error de conexión"; msj.style.color = "var(--danger)"; }
+        }
+
+        async function eliminarCategoria(id) { if (confirm("¿Borrar categoría?")) { await fetch(`${baseUrl}/Categorias/${id}`, { method: 'DELETE' }); cargarCategorias(); } }
 
         // --- LÓGICA DE PRODUCTOS ---
         async function cargarArticulos() {
@@ -910,26 +1075,82 @@
                 const tbody = document.getElementById('tabla-articulos');
                 const cajaPromos = document.getElementById('lista-articulos-promo');
                 tbody.innerHTML = ''; cajaPromos.innerHTML = '';
+
                 data.forEach(item => {
-                    const id = item.codArticulo || item.CodArticulo;
-                    tbody.innerHTML += `<tr><td><strong>${item.descripcion}</strong></td><td>$${item.costo}</td><td><button class="btn-borrar" onclick="eliminarArticulo(${id})">Eliminar</button></td></tr>`;
+                    const id = item.codArticulo !== undefined ? item.codArticulo : item.CodArticulo;
+                    const catId = item.categoriaId !== undefined ? item.categoriaId : item.CategoriaId;
+                    const descSegura = item.descripcion.replace(/'/g, "\\'");
+
+                    tbody.innerHTML += `<tr>
+                        <td><strong>${item.descripcion}</strong></td>
+                        <td>$${item.costo}</td>
+                        <td>
+                            <button class="btn-editar" onclick="prepararEdicionArticulo(${id}, '${descSegura}', ${item.costo}, ${catId})"><i class="fas fa-pen"></i></button>
+                            <button class="btn-borrar" onclick="eliminarArticulo(${id})"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>`;
                     cajaPromos.innerHTML += `<div class="fila-articulo-promo"><span>${item.descripcion}</span><input type="number" min="0" value="0" data-id="${id}" class="cant-articulo-promo"></div>`;
                 });
             } catch (e) { }
         }
 
+        function prepararEdicionArticulo(id, desc, costo, catId) {
+            idArticuloEditando = id;
+            document.getElementById('descArticulo').value = desc;
+            document.getElementById('costoArticulo').value = costo;
+            document.getElementById('categoriaArticulo').value = catId || "";
+            document.getElementById('titulo-form-articulo').innerHTML = '<i class="fas fa-pen"></i> Editando Producto';
+            document.getElementById('btn-submit-articulo').innerText = 'Actualizar Producto';
+            document.getElementById('btn-cancelar-articulo').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function cancelarEdicionArticulo() {
+            idArticuloEditando = 0;
+            document.getElementById('descArticulo').value = '';
+            document.getElementById('costoArticulo').value = '';
+            document.getElementById('imgArticulo').value = '';
+            document.getElementById('categoriaArticulo').value = '';
+            document.getElementById('titulo-form-articulo').innerHTML = '<i class="fas fa-plus-circle"></i> Nuevo Producto';
+            document.getElementById('btn-submit-articulo').innerText = 'Guardar Producto';
+            document.getElementById('btn-cancelar-articulo').style.display = 'none';
+        }
+
         async function guardarArticulo() {
-            const desc = document.getElementById('descArticulo').value, costo = document.getElementById('costoArticulo').value, inputImg = document.getElementById('imgArticulo'), catId = document.getElementById('categoriaArticulo').value, msj = document.getElementById('mensajeArticulo');
-            if (!desc || !costo || !catId) { msj.innerText = "⚠️ Completá los datos"; return; }
+            const desc = document.getElementById('descArticulo').value;
+            const costo = document.getElementById('costoArticulo').value;
+            const inputImg = document.getElementById('imgArticulo');
+            const catId = document.getElementById('categoriaArticulo').value;
+            const msj = document.getElementById('mensajeArticulo');
+
+            if (!desc || !costo || !catId) { msj.innerText = "⚠️ Completá los datos requeridos"; return; }
             const fotoBase64 = await leerFoto(inputImg);
+
+            const payload = {
+                descripcion: desc,
+                urlImagen: fotoBase64, // Si está vacía, el PUT de C# no la sobreescribe
+                costo: parseFloat(costo),
+                stock: 0, stockMinimo: 0,
+                categoriaId: parseInt(catId)
+            };
+
+            const url = idArticuloEditando > 0 ? `${baseUrl}/Articulos/${idArticuloEditando}` : `${baseUrl}/Articulos`;
+            const metodo = idArticuloEditando > 0 ? 'PUT' : 'POST';
+
             try {
-                const res = await fetch(`${baseUrl}/Articulos`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ descripcion: desc, urlImagen: fotoBase64, costo: parseFloat(costo), stock: 0, stockMinimo: 0, categoriaId: parseInt(catId) }) });
-                if (res.ok) { msj.innerText = "✅ Guardado"; msj.style.color = "var(--success)"; document.getElementById('descArticulo').value = ""; document.getElementById('costoArticulo').value = ""; document.getElementById('imgArticulo').value = ""; document.getElementById('categoriaArticulo').value = ""; cargarArticulos(); setTimeout(() => msj.innerText = "", 3000); }
+                const res = await fetch(url, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (res.ok) {
+                    msj.innerText = "✅ Guardado"; msj.style.color = "var(--success)";
+                    cancelarEdicionArticulo();
+                    cargarArticulos();
+                    setTimeout(() => msj.innerText = "", 3000);
+                }
             } catch (e) { msj.innerText = "❌ Error"; msj.style.color = "var(--danger)"; }
         }
 
         async function eliminarArticulo(id) { if (confirm("¿Eliminar producto?")) { await fetch(`${baseUrl}/Articulos/${id}`, { method: 'DELETE' }); cargarArticulos(); } }
 
+        // --- LÓGICA DE PROMOS ---
         async function cargarPromociones() {
             try {
                 const res = await fetch(`${baseUrl}/Promos`);
@@ -938,59 +1159,110 @@
                 const tbody = document.getElementById('tabla-promos');
                 tbody.innerHTML = '';
                 data.forEach(item => {
-                    const id = item.codPromo || item.CodPromo;
-                    tbody.innerHTML += `<tr><td><strong>${item.nombre}</strong></td><td>$${item.precioVenta}</td><td><button class="btn-borrar" onclick="eliminarPromocion(${id})">Eliminar</button></td></tr>`;
+                    const id = item.codPromo !== undefined ? item.codPromo : item.CodPromo;
+                    const nombreSeguro = item.nombre.replace(/'/g, "\\'");
+
+                    tbody.innerHTML += `<tr>
+                        <td><strong>${item.nombre}</strong></td>
+                        <td>$${item.precioVenta}</td>
+                        <td>
+                            <button class="btn-editar" onclick="prepararEdicionPromo(${id})"><i class="fas fa-pen"></i></button>
+                            <button class="btn-borrar" onclick="eliminarPromocion(${id})"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>`;
                 });
             } catch (e) { }
         }
 
-        async function guardarPromocion() {
-            const nombre = document.getElementById('nombrePromo').value, costo = document.getElementById('costoPromo').value, inputImg = document.getElementById('imgPromo'), msj = document.getElementById('mensajePromo');
-            if (!nombre || !costo) { msj.innerText = "⚠️ Faltan datos"; return; }
-            const articulosSel = [];
-            document.querySelectorAll('.cant-articulo-promo').forEach(input => { const cant = parseInt(input.value); if (cant > 0) articulosSel.push({ codArticulo: parseInt(input.getAttribute('data-id')), cantidad: cant }); });
-            if (articulosSel.length === 0) { msj.innerText = "⚠️ Seleccioná artículos"; return; }
-            const fotoBase64 = await leerFoto(inputImg);
+        async function prepararEdicionPromo(id) {
             try {
-                const res = await fetch(`${baseUrl}/Promos`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre: nombre, descripcion: "", categoria: "Promos", urlImagen: fotoBase64, precioVenta: parseFloat(costo), articulos: articulosSel }) });
-                if (res.ok) { msj.innerText = "✅ Guardada"; msj.style.color = "var(--success)"; document.getElementById('nombrePromo').value = ""; document.getElementById('costoPromo').value = ""; document.getElementById('imgPromo').value = ""; document.querySelectorAll('.cant-articulo-promo').forEach(input => input.value = 0); cargarPromociones(); setTimeout(() => msj.innerText = "", 3000); }
-            } catch (e) { msj.innerText = "❌ Error"; msj.style.color = "var(--danger)"; }
+                const res = await fetch(`${baseUrl}/Promos/${id}`);
+                const promo = await res.json();
+
+                idPromoEditando = id;
+                document.getElementById('nombrePromo').value = promo.nombre;
+                document.getElementById('costoPromo').value = promo.precioVenta;
+
+                // Reiniciamos inputs de cantidades
+                document.querySelectorAll('.cant-articulo-promo').forEach(input => input.value = 0);
+
+                // Si la API devuelve los detalles, los marcamos
+                if (promo.detallePromos && promo.detallePromos.length > 0) {
+                    promo.detallePromos.forEach(det => {
+                        const input = document.querySelector(`.cant-articulo-promo[data-id='${det.codArticulo}']`);
+                        if(input) input.value = det.cantidad;
+                    });
+                }
+
+                document.getElementById('titulo-form-promo').innerHTML = '<i class="fas fa-pen"></i> Editando Promoción';
+                document.getElementById('btn-submit-promo').innerText = 'Actualizar Promoción';
+                document.getElementById('btn-cancelar-promo').style.display = 'block';
+                window.scrollTo(0, 0);
+            } catch(e) { alert("Error al cargar detalles de la promoción"); }
+        }
+
+        function cancelarEdicionPromo() {
+            idPromoEditando = 0;
+            document.getElementById('nombrePromo').value = '';
+            document.getElementById('costoPromo').value = '';
+            document.getElementById('imgPromo').value = '';
+            document.querySelectorAll('.cant-articulo-promo').forEach(input => input.value = 0);
+
+            document.getElementById('titulo-form-promo').innerHTML = '<i class="fas fa-star"></i> Nuevo Combo / Promo';
+            document.getElementById('btn-submit-promo').innerText = 'Guardar Promoción';
+            document.getElementById('btn-cancelar-promo').style.display = 'none';
+        }
+
+        async function guardarPromocion() {
+            const nombre = document.getElementById('nombrePromo').value;
+            const costo = document.getElementById('costoPromo').value;
+            const inputImg = document.getElementById('imgPromo');
+            const msj = document.getElementById('mensajePromo');
+
+            if (!nombre || !costo) { msj.innerText = "⚠️ Faltan datos"; return; }
+
+            const articulosSel = [];
+            document.querySelectorAll('.cant-articulo-promo').forEach(input => {
+                const cant = parseInt(input.value);
+                if (cant > 0) articulosSel.push({ codArticulo: parseInt(input.getAttribute('data-id')), cantidad: cant });
+            });
+            if (articulosSel.length === 0) { msj.innerText = "⚠️ Seleccioná artículos para el combo"; return; }
+
+            const fotoBase64 = await leerFoto(inputImg);
+
+            const payload = {
+                nombre: nombre, descripcion: "", categoria: "Promos",
+                urlImagen: fotoBase64, precioVenta: parseFloat(costo),
+                articulos: articulosSel
+            };
+
+            const url = idPromoEditando > 0 ? `${baseUrl}/Promos/${idPromoEditando}` : `${baseUrl}/Promos`;
+            const metodo = idPromoEditando > 0 ? 'PUT' : 'POST';
+
+            try {
+                const res = await fetch(url, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (res.ok) {
+                    msj.innerText = "✅ Guardada"; msj.style.color = "var(--success)";
+                    cancelarEdicionPromo();
+                    cargarPromociones();
+                    setTimeout(() => msj.innerText = "", 3000);
+                } else { msj.innerText = "❌ Error"; msj.style.color = "var(--danger)"; }
+            } catch (e) { msj.innerText = "❌ Error de conexión"; msj.style.color = "var(--danger)"; }
         }
 
         async function eliminarPromocion(id) { if (confirm("¿Borrar promoción?")) { await fetch(`${baseUrl}/Promos/${id}`, { method: 'DELETE' }); cargarPromociones(); } }
 
-        async function cargarCategorias() {
-            try {
-                const res = await fetch(`${baseUrl}/Categorias`);
-                const data = await res.json();
-                document.getElementById('metric-cat').innerText = data.length;
-                const tbody = document.getElementById('tabla-categorias'), selectArticulo = document.getElementById('categoriaArticulo');
-                tbody.innerHTML = ''; selectArticulo.innerHTML = '<option value="">Seleccioná...</option>';
-                data.forEach(item => {
-                    tbody.innerHTML += `<tr><td><strong>${item.nombre}</strong></td><td><button class="btn-borrar" onclick="eliminarCategoria(${item.codCategoria})">Eliminar</button></td></tr>`;
-                    selectArticulo.innerHTML += `<option value="${item.codCategoria}">${item.nombre}</option>`;
-                });
-            } catch (e) { }
-        }
-
-        async function guardarCategoria() {
-            const nombre = document.getElementById('nombreCategoria').value, msj = document.getElementById('mensajeCategoria');
-            if (!nombre) return;
-            try {
-                const res = await fetch(`${baseUrl}/Categorias`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ codCategoria: 0, nombre: nombre }) });
-                if (res.ok) { msj.innerText = "✅ Guardada"; msj.style.color = "var(--success)"; document.getElementById('nombreCategoria').value = ""; cargarCategorias(); setTimeout(() => msj.innerText = "", 3000); }
-            } catch (e) { msj.innerText = "❌ Error"; msj.style.color = "var(--danger)"; }
-        }
-
-        async function eliminarCategoria(id) { if (confirm("¿Borrar categoría?")) { await fetch(`${baseUrl}/Categorias/${id}`, { method: 'DELETE' }); cargarCategorias(); } }
-
+        // --- LÓGICA DE BANNERS (Sin cambios por ahora) ---
         async function cargarBanners() {
             try {
                 const res = await fetch(`${baseUrl}/Banners`);
                 const data = await res.json();
                 const tbody = document.getElementById('tabla-banners');
                 tbody.innerHTML = '';
-                data.forEach(item => { tbody.innerHTML += `<tr><td><strong>${item.titulo}</strong><br><small>${item.subtitulo}</small></td><td><div style="width:30px;height:30px;background:${item.backgroundColor};border-radius:4px;border:1px solid #ddd;"></div></td><td><button class="btn-borrar" onclick="eliminarBanner(${item.codBanner})">Eliminar</button></td></tr>`; });
+                data.forEach(item => {
+                    const id = item.codBanner !== undefined ? item.codBanner : item.CodBanner;
+                    tbody.innerHTML += `<tr><td><strong>${item.titulo}</strong><br><small>${item.subtitulo}</small></td><td><div style="width:30px;height:30px;background:${item.backgroundColor};border-radius:4px;border:1px solid #ddd;"></div></td><td><button class="btn-borrar" onclick="eliminarBanner(${id})"><i class="fas fa-trash"></i></button></td></tr>`;
+                });
             } catch (e) { }
         }
 
@@ -1006,13 +1278,14 @@
         async function eliminarBanner(id) { if (confirm("¿Borrar banner?")) { await fetch(`${baseUrl}/Banners/${id}`, { method: 'DELETE' }); cargarBanners(); } }
 
         window.onload = () => {
-            cargarConfigLocal(); // Se agregó esta línea clave
+            cargarConfigLocal();
             cargarPedidos();
             cargarEstadisticas();
             cargarEnvio();
+            cargarRubros();
+            cargarCategorias();
             cargarArticulos();
             cargarPromociones();
-            cargarCategorias();
             cargarBanners();
         };
     </script>

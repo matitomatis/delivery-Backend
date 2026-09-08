@@ -25,12 +25,16 @@ namespace delivery.Controllers
         public async Task<IActionResult> GetPendientes()
         {
             var pedidos = await _context.Pedidos
+                .Include(p => p.Cliente) // <-- Agregamos esto para traer los datos del cliente unidos al pedido
                 .Where(p => p.Estado == "Pendiente")
                 .Select(p => new
                 {
                     id = p.CodPedido,
                     fecha = p.Fecha.ToString("dd/MM/yyyy HH:mm"),
-                    cliente = "Cliente", // (Opcional: Si tenés la relación navegacional, podés usar p.Cliente.Nombre)
+
+                    // Acá armamos la etiqueta del Admin usando el ID real y los datos guardados
+                    cliente = p.Cliente != null ? "#" + p.CodPedido + " - " + p.Cliente.Nombre : "#" + p.CodPedido + " - Sin Datos",
+
                     total = p.Total
                 })
                 .OrderByDescending(p => p.id)
@@ -43,7 +47,6 @@ namespace delivery.Controllers
         [HttpPost("Nuevo")]
         public async Task<IActionResult> CrearPedido([FromBody] PedidoNuevoDto dto)
         {
-            // 1. Creamos al cliente en la base de datos
             var nuevoCliente = new Cliente
             {
                 Nombre = dto.Cliente
@@ -52,17 +55,12 @@ namespace delivery.Controllers
             _context.Clientes.Add(nuevoCliente);
             await _context.SaveChangesAsync();
 
-            // 2. Armamos el pedido vinculando el ID del cliente y la forma de pago
             var nuevoPedido = new Pedido
             {
                 Fecha = DateTime.Now,
                 Estado = "Pendiente",
                 Total = dto.Total,
-
-                // Vinculamos el cliente que acabamos de crear
                 CodCliente = nuevoCliente.CodCliente,
-
-                // ¡LA SOLUCIÓN AL ERROR! Le pasamos un ID válido de forma de pago
                 CodFormaPago = 1,
                 CodTipoEnvio = 1
             };
@@ -70,7 +68,8 @@ namespace delivery.Controllers
             _context.Pedidos.Add(nuevoPedido);
             await _context.SaveChangesAsync();
 
-            return Ok();
+            // <-- ¡MAGIA ACÁ! Devolvemos el ID que SQL le acaba de asignar al pedido
+            return Ok(new { id = nuevoPedido.CodPedido });
         }
 
         // PUT: api/Pedidos/5/Estado
@@ -87,7 +86,6 @@ namespace delivery.Controllers
         }
     }
 
-    // Fuera del controlador para mantener el código ordenado
     public class PedidoNuevoDto
     {
         public string Cliente { get; set; }

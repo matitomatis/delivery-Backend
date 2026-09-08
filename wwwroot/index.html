@@ -349,7 +349,7 @@
                 color: var(--primary);
             }
 
-        /* --- MENÚ LATERAL --- */
+        /* --- MENÚ LATERAL (ACORDEÓN) --- */
         .menu-lateral-overlay {
             position: fixed;
             top: 0;
@@ -371,10 +371,10 @@
         .menu-lateral-content {
             position: absolute;
             top: 0;
-            left: -260px;
-            width: 260px;
+            left: -280px;
+            width: 280px;
             height: 100%;
-            background: var(--white);
+            background: var(--bg);
             transition: left 0.3s ease;
             display: flex;
             flex-direction: column;
@@ -390,6 +390,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: var(--white);
         }
 
             .menu-lateral-header h2 {
@@ -401,7 +402,6 @@
         .menu-lateral-body {
             overflow-y: auto;
             flex: 1;
-            padding: 10px 0;
         }
 
         .menu-item-lateral {
@@ -409,20 +409,96 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            font-size: 0.95rem;
+            font-size: 1rem;
             font-weight: 600;
             color: var(--text-dark);
+            background: var(--white);
             border-bottom: 1px solid var(--border);
             cursor: pointer;
+            transition: 0.2s;
         }
 
             .menu-item-lateral:hover {
                 background: var(--bg);
             }
 
-            .menu-item-lateral .cat-icon {
-                font-size: 1.3rem;
+        .rubro-acordeon {
+            border-bottom: 1px solid var(--border);
+            background: var(--white);
+        }
+
+        .rubro-header {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--text-dark);
+            transition: 0.2s;
+        }
+
+            .rubro-header:hover {
+                background: var(--primary-light);
+                color: var(--primary);
             }
+
+        .icono-acordeon {
+            color: var(--text-muted);
+            transition: transform 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+            .icono-acordeon.rotado {
+                transform: rotate(180deg);
+                color: var(--primary);
+            }
+
+        .categorias-submenu {
+            display: none;
+            background: var(--bg);
+            border-top: 1px solid var(--border);
+        }
+
+            .categorias-submenu.abierto {
+                display: block;
+                animation: slideDown 0.3s ease;
+            }
+
+        .submenu-item {
+            padding: 12px 20px 12px 40px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.2s;
+        }
+
+            .submenu-item:last-child {
+                border-bottom: none;
+            }
+
+            .submenu-item:hover {
+                color: var(--primary);
+                font-weight: bold;
+                background: var(--white);
+            }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
         /* --- MODAL CARRITO --- */
         .modal-overlay {
@@ -716,169 +792,475 @@
         </div>
     </div>
 
+    <!-- SCRIPT CORREGIDO SIN COMILLAS INVERTIDAS -->
     <script>
         const baseURL = '/api';
-        const imgGris = "https://via.placeholder.com/150/555555/ffffff?text=Sin+Foto";
+        const imgGris = 'https://via.placeholder.com/150/555555/ffffff?text=Sin+Foto';
 
         let costoEnvioFijo = 0;
         let carrito = {};
         window.todosLosProductos = [];
-
-        let numeroWhatsAppDinamico = "";
+        let numeroWhatsAppDinamico = '';
 
         async function inicializarApp() {
             try {
-                const resEnvio = await fetch(`${baseURL}/TarifaEnvio`);
+                const resEnvio = await fetch(baseURL + '/TarifaEnvio');
                 if (resEnvio.ok) { costoEnvioFijo = await resEnvio.json(); }
 
-                const resConfig = await fetch(`${baseURL}/Configuracion`);
+                const resConfig = await fetch(baseURL + '/Configuracion');
                 if (resConfig.ok) {
                     const config = await resConfig.json();
                     if (config.whatsApp) numeroWhatsAppDinamico = config.whatsApp;
                 }
             } catch (e) { }
             await cargarMenu();
+            iniciarCarruselCategorias();
+        }
+
+        function iniciarCarruselCategorias() {
+            const caja = document.getElementById('caja-categorias');
+            if (!caja) return;
+
+            let pausa = false;
+
+            function moverCarrusel() {
+                if (!pausa) {
+                    caja.scrollLeft += 1;
+                    if (caja.scrollLeft + caja.clientWidth >= caja.scrollWidth - 1) {
+                        caja.scrollLeft = 0;
+                    }
+                }
+                requestAnimationFrame(moverCarrusel);
+            }
+
+            requestAnimationFrame(moverCarrusel);
+
+            caja.addEventListener('touchstart', function () { pausa = true; });
+            caja.addEventListener('touchend', function () { setTimeout(function () { pausa = false; }, 2000); });
+            caja.addEventListener('mouseenter', function () { pausa = true; });
+            caja.addEventListener('mouseleave', function () { pausa = false; });
         }
 
         function separarEmojiDeTexto(textoCrudo) {
+            if (!textoCrudo) return { emoji: '', texto: '' };
             const indexEspacio = textoCrudo.indexOf(' ');
-            if (indexEspacio !== -1 && indexEspacio <= 2) {
-                return { emoji: textoCrudo.substring(0, indexEspacio), texto: textoCrudo.substring(indexEspacio + 1) };
+
+            if (indexEspacio !== -1 && indexEspacio <= 5) {
+                const primeraParte = textoCrudo.substring(0, indexEspacio);
+                if (!/[a-zA-Z]/.test(primeraParte)) {
+                    return { emoji: primeraParte, texto: textoCrudo.substring(indexEspacio + 1) };
+                }
             }
-            return { emoji: '🏷️', texto: textoCrudo };
+            return { emoji: '', texto: textoCrudo };
         }
 
         function irAInicio() {
-            document.getElementById('input-busqueda').value = "";
-            buscarGlobal("");
+            document.getElementById('input-busqueda').value = '';
+            buscarGlobal('');
             const btnPromos = document.getElementById('btn-cat-promos');
             if (btnPromos) filtrarCategoria('seccion-promos', btnPromos);
             window.scrollTo(0, 0);
         }
 
-        function abrirMenuLateral() { const menu = document.getElementById('menu-lateral'); menu.style.display = 'block'; setTimeout(() => menu.classList.add('activo'), 10); }
-        function cerrarMenuLateral() { const menu = document.getElementById('menu-lateral'); menu.classList.remove('activo'); setTimeout(() => menu.style.display = 'none', 300); }
+        function abrirMenuLateral() {
+            const menu = document.getElementById('menu-lateral');
+            menu.style.display = 'block';
+            setTimeout(function () { menu.classList.add('activo'); }, 10);
+        }
+
+        function cerrarMenuLateral() {
+            const menu = document.getElementById('menu-lateral');
+            menu.classList.remove('activo');
+            setTimeout(function () { menu.style.display = 'none'; }, 300);
+        }
+
+        function toggleRubro(idRubro) {
+            const submenu = document.getElementById('submenu-rubro-' + idRubro);
+            const icono = document.getElementById('icono-rubro-' + idRubro);
+
+            if (submenu.classList.contains('abierto')) {
+                submenu.classList.remove('abierto');
+                icono.classList.remove('rotado');
+            } else {
+                document.querySelectorAll('.categorias-submenu').forEach(function (el) { el.classList.remove('abierto'); });
+                document.querySelectorAll('.icono-acordeon').forEach(function (el) { el.classList.remove('rotado'); });
+                submenu.classList.add('abierto');
+                icono.classList.add('rotado');
+            }
+        }
 
         function seleccionarCategoriaDesdeMenu(idSeccion, idBotonCatSuperior) {
-            cerrarMenuLateral(); document.getElementById('input-busqueda').value = ""; buscarGlobal("");
+            cerrarMenuLateral();
+            document.getElementById('input-busqueda').value = '';
+            buscarGlobal('');
             const botonFisico = document.getElementById(idBotonCatSuperior);
             if (botonFisico) filtrarCategoria(idSeccion, botonFisico);
         }
 
         function filtrarCategoria(idSeccion, elementoBoton) {
-            document.querySelectorAll('#contenedor-vistas .seccion-vista').forEach(sec => sec.classList.remove('activa'));
+            document.querySelectorAll('#contenedor-vistas .seccion-vista').forEach(function (sec) { sec.classList.remove('activa'); });
             document.getElementById(idSeccion).classList.add('activa');
-            document.querySelectorAll('.cat-item').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.cat-item').forEach(function (btn) { btn.classList.remove('active'); });
             if (elementoBoton) elementoBoton.classList.add('active');
             window.scrollTo(0, 0);
         }
 
         function buscarGlobal(texto) {
             const txt = texto.toLowerCase().trim();
-            const vistaBusqueda = document.getElementById('vista-busqueda'), cajaCategorias = document.getElementById('caja-categorias'), contenedorVistas = document.getElementById('contenedor-vistas'), listaBusqueda = document.getElementById('lista-busqueda-contenido'), textoResultados = document.getElementById('texto-resultados');
-            if (txt === '') { vistaBusqueda.style.display = 'none'; cajaCategorias.style.display = 'flex'; contenedorVistas.style.display = 'block'; return; }
-            vistaBusqueda.style.display = 'block'; cajaCategorias.style.display = 'none'; contenedorVistas.style.display = 'none';
-            const filtrados = window.todosLosProductos.filter(p => p.nombre.toLowerCase().includes(txt) || p.desc.toLowerCase().includes(txt));
-            textoResultados.innerText = filtrados.length > 0 ? `Resultados para "${texto}"` : `No encontramos "${texto}"`;
+            const vistaBusqueda = document.getElementById('vista-busqueda');
+            const cajaCategorias = document.getElementById('caja-categorias');
+            const contenedorVistas = document.getElementById('contenedor-vistas');
+            const listaBusqueda = document.getElementById('lista-busqueda-contenido');
+            const textoResultados = document.getElementById('texto-resultados');
+
+            if (txt === '') {
+                vistaBusqueda.style.display = 'none';
+                cajaCategorias.style.display = 'flex';
+                contenedorVistas.style.display = 'block';
+                return;
+            }
+
+            vistaBusqueda.style.display = 'block';
+            cajaCategorias.style.display = 'none';
+            contenedorVistas.style.display = 'none';
+
+            const filtrados = window.todosLosProductos.filter(function (p) { return p.nombre.toLowerCase().includes(txt) || p.desc.toLowerCase().includes(txt); });
+            textoResultados.innerText = filtrados.length > 0 ? 'Resultados para "' + texto + '"' : 'No encontramos "' + texto + '"';
             listaBusqueda.innerHTML = '';
-            filtrados.forEach(item => {
-                listaBusqueda.innerHTML += `<div class="producto"><div class="producto-info">${item.esPromo ? '<p class="desc" style="color: var(--primary); font-weight: bold; margin-bottom: 2px;">¡COMBO ESPECIAL!</p>' : ''}<h3>${item.nombre}</h3><p class="desc">${item.desc}</p><div class="precio">$${item.precio}</div></div><div class="producto-img-container"><img src="${item.img}"><button class="btn-add" onclick="agregarAlCarrito('${item.nombre.replace(/'/g, "\\'")}', ${item.precio}, '${item.img}')">+</button></div></div>`;
+
+            filtrados.forEach(function (item) {
+                const descLimpio = item.nombre.replace(/'/g, "\\'");
+                const promoHtml = item.esPromo ? '<p class="desc" style="color: var(--primary); font-weight: bold; margin-bottom: 2px;">¡COMBO ESPECIAL!</p>' : '';
+
+                listaBusqueda.innerHTML += '<div class="producto">' +
+                    '<div class="producto-info">' +
+                    promoHtml +
+                    '<h3>' + item.nombre + '</h3>' +
+                    '<p class="desc">' + item.desc + '</p>' +
+                    '<div class="precio">$' + item.precio + '</div>' +
+                    '</div>' +
+                    '<div class="producto-img-container">' +
+                    '<img src="' + item.img + '">' +
+                    '<button class="btn-add" onclick="agregarAlCarrito(\'' + descLimpio + '\', ' + item.precio + ', \'' + item.img + '\')">+</button>' +
+                    '</div>' +
+                    '</div>';
             });
         }
 
         async function cargarMenu() {
             try {
                 window.todosLosProductos = [];
-                const cajaCategorias = document.getElementById('caja-categorias'), contenedorVistas = document.getElementById('contenedor-vistas'), listaMenuLateral = document.getElementById('lista-menu-lateral');
-                cajaCategorias.innerHTML += `<div class="cat-item active" id="btn-cat-promos" onclick="filtrarCategoria('seccion-promos', this)"><span class="cat-icon">🏷️</span><span>Promos</span></div>`;
-                listaMenuLateral.innerHTML += `<div class="menu-item-lateral" onclick="seleccionarCategoriaDesdeMenu('seccion-promos', 'btn-cat-promos')"><span class="cat-icon">🏷️</span> Promociones</div>`;
-                contenedorVistas.innerHTML += `<div id="seccion-promos" class="seccion-vista activa"><div class="seccion-header-flex"><span class="cat-icon" style="color:var(--primary); font-size:1.3rem;">🏷️</span><h2 class="seccion-titulo">Promociones</h2></div><p class="seccion-subtitulo">Combos especiales para vos</p><div id="lista-promos-contenido"></div></div>`;
+                const cajaCategorias = document.getElementById('caja-categorias');
+                const contenedorVistas = document.getElementById('contenedor-vistas');
+                const listaMenuLateral = document.getElementById('lista-menu-lateral');
 
-                const resPromo = await fetch(`${baseURL}/Promos`);
-                const promos = await resPromo.json();
-                if (promos.length > 0) {
-                    promos.forEach(item => {
-                        const img = item.urlImagen || imgGris;
-                        window.todosLosProductos.push({ nombre: item.nombre, desc: "Todo lo que necesitás para armar el mejor plan.", precio: item.precioVenta, img: img, esPromo: true });
-                        document.getElementById('lista-promos-contenido').innerHTML += `<div class="producto"><div class="producto-info"><p class="desc" style="color: var(--primary); font-weight: bold; margin-bottom: 2px;">¡COMBO ESPECIAL!</p><h3>${item.nombre}</h3><p class="desc">Todo lo que necesitás para armar el mejor plan.</p><div class="precio">$${item.precioVenta}</div></div><div class="producto-img-container"><img src="${img}"><button class="btn-add" onclick="agregarAlCarrito('${item.nombre.replace(/'/g, "\\'")}', ${item.precioVenta}, '${img}')">+</button></div></div>`;
+                cajaCategorias.innerHTML = '';
+                listaMenuLateral.innerHTML = '';
+                contenedorVistas.innerHTML = '';
+
+                // 1. Promos fijas al inicio
+                cajaCategorias.innerHTML += '<div class="cat-item active" id="btn-cat-promos" onclick="filtrarCategoria(\'seccion-promos\', this)"><span class="cat-icon">🌟</span><span>Promos</span></div>';
+                listaMenuLateral.innerHTML += '<div class="menu-item-lateral" onclick="seleccionarCategoriaDesdeMenu(\'seccion-promos\', \'btn-cat-promos\')"><span class="cat-icon" style="margin-right:10px;">🌟</span> Promociones</div>';
+                contenedorVistas.innerHTML += '<div id="seccion-promos" class="seccion-vista activa"><div class="seccion-header-flex"><span class="cat-icon" style="color:var(--primary); font-size:1.3rem;">🌟</span><h2 class="seccion-titulo">Promociones</h2></div><p class="seccion-subtitulo">Combos especiales para vos</p><div id="lista-promos-contenido"></div></div>';
+
+                const resPromo = await fetch(baseURL + '/Promos');
+                if (resPromo.ok) {
+                    const promos = await resPromo.json();
+                    promos.forEach(function (item) {
+                        const img = item.urlImagen || item.UrlImagen || imgGris;
+                        const nombrePromo = item.nombre || item.Nombre;
+                        const precioPromo = item.precioVenta || item.PrecioVenta;
+                        const nombreLimpio = nombrePromo.replace(/'/g, "\\'");
+
+                        window.todosLosProductos.push({ nombre: nombrePromo, desc: "Todo lo que necesitás para armar el mejor plan.", precio: precioPromo, img: img, esPromo: true });
+
+                        document.getElementById('lista-promos-contenido').innerHTML += '<div class="producto">' +
+                            '<div class="producto-info">' +
+                            '<p class="desc" style="color: var(--primary); font-weight: bold; margin-bottom: 2px;">¡COMBO ESPECIAL!</p>' +
+                            '<h3>' + nombrePromo + '</h3>' +
+                            '<p class="desc">Todo lo que necesitás para armar el mejor plan.</p>' +
+                            '<div class="precio">$' + precioPromo + '</div>' +
+                            '</div>' +
+                            '<div class="producto-img-container">' +
+                            '<img src="' + img + '">' +
+                            '<button class="btn-add" onclick="agregarAlCarrito(\'' + nombreLimpio + '\', ' + precioPromo + ', \'' + img + '\')">+</button>' +
+                            '</div>' +
+                            '</div>';
                     });
                 }
 
-                const resCat = await fetch(`${baseURL}/Categorias`);
-                const categorias = await resCat.json();
-                categorias.forEach(cat => {
-                    const format = separarEmojiDeTexto(cat.nombre);
-                    const btnId = `btn-cat-${cat.codCategoria}`;
-                    cajaCategorias.innerHTML += `<div class="cat-item" id="${btnId}" onclick="filtrarCategoria('seccion-cat-${cat.codCategoria}', this)"><span class="cat-icon">${format.emoji}</span><span>${format.texto}</span></div>`;
-                    listaMenuLateral.innerHTML += `<div class="menu-item-lateral" onclick="seleccionarCategoriaDesdeMenu('seccion-cat-${cat.codCategoria}', '${btnId}')"><span class="cat-icon">${format.emoji}</span> ${format.texto}</div>`;
-                    contenedorVistas.innerHTML += `<div id="seccion-cat-${cat.codCategoria}" class="seccion-vista"><div class="seccion-header-flex"><span class="cat-icon" style="color:var(--primary); font-size:1.3rem;">${format.emoji}</span><h2 class="seccion-titulo">${format.texto}</h2></div><p class="seccion-subtitulo">Las mejores opciones para vos</p><div id="lista-cat-${cat.codCategoria}"></div></div>`;
+                // 2. Traer Rubros y Categorias
+                const resRubros = await fetch(baseURL + '/Rubros');
+                let rubros = [];
+                if (resRubros.ok) { rubros = await resRubros.json(); }
+
+                const resCat = await fetch(baseURL + '/Categorias');
+                let categorias = [];
+                if (resCat.ok) { categorias = await resCat.json(); }
+
+                // 3. CARGAR CARRUSEL (Todas las categorías siempre)
+                categorias.forEach(function (cat) {
+                    const idCat = cat.codCategoria !== undefined ? cat.codCategoria : cat.CodCategoria;
+                    const nombreCat = cat.nombre !== undefined ? cat.nombre : cat.Nombre;
+                    const format = separarEmojiDeTexto(nombreCat);
+                    const btnId = 'btn-cat-' + idCat;
+
+                    const iconoHTML = format.emoji !== '' ? '<span class="cat-icon">' + format.emoji + '</span>' : '';
+                    const iconoInline = format.emoji !== '' ? '<span class="cat-icon" style="color:var(--primary); font-size:1.3rem;">' + format.emoji + '</span>' : '';
+
+                    // Agregar siempre al carrusel superior
+                    cajaCategorias.innerHTML += '<div class="cat-item" id="' + btnId + '" onclick="filtrarCategoria(\'seccion-cat-' + idCat + '\', this)">' + iconoHTML + '<span>' + format.texto + '</span></div>';
+
+                    // Aseguramos que la vista se cree acá para todas las categorías
+                    let rubroPadre = rubros.find(function (r) { return (r.codRubro !== undefined ? r.codRubro : r.CodRubro) == (cat.codRubro !== undefined ? cat.codRubro : cat.CodRubro); });
+                    let subtitulo = rubroPadre ? (rubroPadre.nombre !== undefined ? rubroPadre.nombre : rubroPadre.Nombre) : 'Categoría';
+
+                    contenedorVistas.innerHTML += '<div id="seccion-cat-' + idCat + '" class="seccion-vista"><div class="seccion-header-flex">' + iconoInline + '<h2 class="seccion-titulo">' + format.texto + '</h2></div><p class="seccion-subtitulo">' + subtitulo + '</p><div id="lista-cat-' + idCat + '"></div></div>';
                 });
 
-                const resArt = await fetch(`${baseURL}/Articulos`);
-                const articulos = await resArt.json();
-                articulos.forEach(item => {
-                    const img = item.urlImagen || imgGris, precio = item.costo || item.Costo;
-                    window.todosLosProductos.push({ nombre: item.descripcion, desc: "Sabor original", precio: precio, img: img, esPromo: false });
-                    const div = document.getElementById(`lista-cat-${item.categoriaId || item.CategoriaId}`);
-                    if (div) { div.innerHTML += `<div class="producto"><div class="producto-info"><h3>${item.descripcion}</h3><p class="desc">Sabor original</p><div class="precio">$${precio}</div></div><div class="producto-img-container"><img src="${img}"><button class="btn-add" onclick="agregarAlCarrito('${item.descripcion.replace(/'/g, "\\'")}', ${precio}, '${img}')">+</button></div></div>`; }
+                // 4. CARGAR ACORDEÓN (Rubros -> Categorías)
+                rubros.forEach(function (rubro) {
+                    const idRubro = rubro.codRubro !== undefined ? rubro.codRubro : rubro.CodRubro;
+                    const nombreRubro = rubro.nombre !== undefined ? rubro.nombre : rubro.Nombre;
+
+                    const catsDelRubro = categorias.filter(function (c) {
+                        const rubroCat = c.codRubro !== undefined ? c.codRubro : c.CodRubro;
+                        return rubroCat == idRubro;
+                    });
+
+                    let submenuHTML = '<div class="categorias-submenu" id="submenu-rubro-' + idRubro + '">';
+                    if (catsDelRubro.length > 0) {
+                        catsDelRubro.forEach(function (cat) {
+                            const idCat = cat.codCategoria !== undefined ? cat.codCategoria : cat.CodCategoria;
+                            const nombreCat = cat.nombre !== undefined ? cat.nombre : cat.Nombre;
+                            const format = separarEmojiDeTexto(nombreCat);
+                            const btnId = 'btn-cat-' + idCat;
+                            const iconoItem = format.emoji !== '' ? format.emoji + ' ' : '';
+
+                            submenuHTML += '<div class="submenu-item" onclick="seleccionarCategoriaDesdeMenu(\'seccion-cat-' + idCat + '\', \'' + btnId + '\')">' + iconoItem + '<span style="font-weight:600;">' + format.texto + '</span></div>';
+                        });
+                    } else {
+                        submenuHTML += '<div class="submenu-item" style="color:var(--text-muted); font-style:italic;">Sin categorías todavía</div>';
+                    }
+                    submenuHTML += '</div>';
+
+                    listaMenuLateral.innerHTML += '<div class="rubro-acordeon">' +
+                        '<div class="rubro-header" onclick="toggleRubro(' + idRubro + ')">' +
+                        '<span>' + nombreRubro + '</span>' +
+                        '<i class="fas fa-chevron-down icono-acordeon" id="icono-rubro-' + idRubro + '"></i>' +
+                        '</div>' +
+                        submenuHTML +
+                        '</div>';
                 });
-            } catch (e) { }
+
+                // 5. Cargar los Productos
+                const resArt = await fetch(baseURL + '/Articulos');
+                if (resArt.ok) {
+                    const articulos = await resArt.json();
+                    articulos.forEach(function (item) {
+                        const img = item.urlImagen || item.UrlImagen || imgGris;
+                        const precio = item.costo || item.Costo || 0;
+                        const desc = item.descripcion || item.Descripcion || "Producto";
+                        const catId = item.categoriaId !== undefined ? item.categoriaId : item.CategoriaId;
+
+                        window.todosLosProductos.push({ nombre: desc, desc: "Sabor original", precio: precio, img: img, esPromo: false });
+
+                        const div = document.getElementById('lista-cat-' + catId);
+                        if (div) {
+                            const descLimpio = desc.replace(/'/g, "\\'");
+                            div.innerHTML += '<div class="producto">' +
+                                '<div class="producto-info">' +
+                                '<h3>' + desc + '</h3>' +
+                                '<p class="desc">Sabor original</p>' +
+                                '<div class="precio">$' + precio + '</div>' +
+                                '</div>' +
+                                '<div class="producto-img-container">' +
+                                '<img src="' + img + '">' +
+                                '<button class="btn-add" onclick="agregarAlCarrito(\'' + descLimpio + '\', ' + precio + ', \'' + img + '\')">+</button>' +
+                                '</div>' +
+                                '</div>';
+                        }
+                    });
+                }
+            } catch (e) { console.error(e); }
         }
 
-        function agregarAlCarrito(nombre, precio, imgUrl) { if (!carrito[nombre]) carrito[nombre] = { precio: precio, cantidad: 1, img: imgUrl }; else carrito[nombre].cantidad++; actualizarUIFlotante(); renderizarItemsModal(); }
-        function restarDelCarrito(nombre) { if (carrito[nombre]) { carrito[nombre].cantidad--; if (carrito[nombre].cantidad <= 0) delete carrito[nombre]; } actualizarUIFlotante(); renderizarItemsModal(); }
-        function eliminarDelCarrito(nombre) { delete carrito[nombre]; actualizarUIFlotante(); renderizarItemsModal(); if (Object.keys(carrito).length === 0) cerrarModalCarrito(); }
-        function calcularTotales() { let cantItems = 0, subtotal = 0; for (let n in carrito) { cantItems += carrito[n].cantidad; subtotal += (carrito[n].precio * carrito[n].cantidad); } return { cantItems, subtotal, totalGeneral: cantItems > 0 ? subtotal + costoEnvioFijo : 0 }; }
-        function actualizarUIFlotante() { const t = calcularTotales(); document.getElementById('nav-cart-badge').innerText = t.cantItems; document.getElementById('cant-flotante').innerText = t.cantItems; document.getElementById('total-flotante').innerText = '$' + t.subtotal; document.querySelector('.carrito-flotante').style.display = t.cantItems > 0 ? 'flex' : 'none'; }
+        function agregarAlCarrito(nombre, precio, imgUrl) {
+            if (!carrito[nombre]) {
+                carrito[nombre] = { precio: precio, cantidad: 1, img: imgUrl };
+            } else {
+                carrito[nombre].cantidad++;
+            }
+            actualizarUIFlotante();
+            renderizarItemsModal();
+        }
+
+        function restarDelCarrito(nombre) {
+            if (carrito[nombre]) {
+                carrito[nombre].cantidad--;
+                if (carrito[nombre].cantidad <= 0) {
+                    delete carrito[nombre];
+                }
+            }
+            actualizarUIFlotante();
+            renderizarItemsModal();
+        }
+
+        function eliminarDelCarrito(nombre) {
+            delete carrito[nombre];
+            actualizarUIFlotante();
+            renderizarItemsModal();
+            if (Object.keys(carrito).length === 0) {
+                cerrarModalCarrito();
+            }
+        }
+
+        function calcularTotales() {
+            let cantItems = 0;
+            let subtotal = 0;
+            for (let n in carrito) {
+                cantItems += carrito[n].cantidad;
+                subtotal += (carrito[n].precio * carrito[n].cantidad);
+            }
+            let totalG = cantItems > 0 ? subtotal + costoEnvioFijo : 0;
+            return { cantItems: cantItems, subtotal: subtotal, totalGeneral: totalG };
+        }
+
+        function actualizarUIFlotante() {
+            const t = calcularTotales();
+            document.getElementById('nav-cart-badge').innerText = t.cantItems;
+            document.getElementById('cant-flotante').innerText = t.cantItems;
+            document.getElementById('total-flotante').innerText = '$' + t.subtotal;
+            document.querySelector('.carrito-flotante').style.display = t.cantItems > 0 ? 'flex' : 'none';
+        }
 
         function renderizarItemsModal() {
-            const lista = document.getElementById('lista-carrito-items'); lista.innerHTML = '';
-            for (let n in carrito) { let i = carrito[n]; lista.innerHTML += `<div class="cart-item"><img src="${i.img}" class="cart-item-img"><div class="cart-item-info"><h4>${n}</h4><div class="precio">$${i.precio}</div><div class="qty-controls"><button class="qty-btn" onclick="restarDelCarrito('${n}')">−</button><span class="qty-val">${i.cantidad}</span><button class="qty-btn" onclick="agregarAlCarrito('${n}', ${i.precio}, '${i.img}')">+</button></div></div><button class="btn-trash" onclick="eliminarDelCarrito('${n}')"><i class="fas fa-trash-alt"></i></button></div>`; }
+            const lista = document.getElementById('lista-carrito-items');
+            lista.innerHTML = '';
+
+            for (let n in carrito) {
+                let i = carrito[n];
+                const nLimpio = n.replace(/'/g, "\\'");
+                lista.innerHTML += '<div class="cart-item">' +
+                    '<img src="' + i.img + '" class="cart-item-img">' +
+                    '<div class="cart-item-info">' +
+                    '<h4>' + n + '</h4>' +
+                    '<div class="precio">$' + i.precio + '</div>' +
+                    '<div class="qty-controls">' +
+                    '<button class="qty-btn" onclick="restarDelCarrito(\'' + nLimpio + '\')">−</button>' +
+                    '<span class="qty-val">' + i.cantidad + '</span>' +
+                    '<button class="qty-btn" onclick="agregarAlCarrito(\'' + nLimpio + '\', ' + i.precio + ', \'' + i.img + '\')">+</button>' +
+                    '</div>' +
+                    '</div>' +
+                    '<button class="btn-trash" onclick="eliminarDelCarrito(\'' + nLimpio + '\')"><i class="fas fa-trash-alt"></i></button>' +
+                    '</div>';
+            }
+
             const t = calcularTotales();
-            document.getElementById('txt-subtotal-cant').innerText = `Subtotal (${t.cantItems})`; document.getElementById('txt-subtotal-monto').innerText = '$' + t.subtotal; document.getElementById('txt-envio-monto').innerText = '$' + costoEnvioFijo; document.getElementById('txt-total-monto').innerText = '$' + t.totalGeneral;
-            document.getElementById('txt2-subtotal-cant').innerText = `${t.cantItems} productos`; document.getElementById('txt2-subtotal-monto').innerText = '$' + t.subtotal; document.getElementById('txt2-envio-monto').innerText = '$' + costoEnvioFijo; document.getElementById('txt2-total-monto').innerText = '$' + t.totalGeneral;
+            document.getElementById('txt-subtotal-cant').innerText = 'Subtotal (' + t.cantItems + ')';
+            document.getElementById('txt-subtotal-monto').innerText = '$' + t.subtotal;
+            document.getElementById('txt-envio-monto').innerText = '$' + costoEnvioFijo;
+            document.getElementById('txt-total-monto').innerText = '$' + t.totalGeneral;
+            document.getElementById('txt2-subtotal-cant').innerText = t.cantItems + ' productos';
+            document.getElementById('txt2-subtotal-monto').innerText = '$' + t.subtotal;
+            document.getElementById('txt2-envio-monto').innerText = '$' + costoEnvioFijo;
+            document.getElementById('txt2-total-monto').innerText = '$' + t.totalGeneral;
         }
 
-        function abrirModalCarrito() { if (Object.keys(carrito).length === 0) return alert("Agregá productos primero."); renderizarItemsModal(); document.getElementById('modal-cart').style.display = 'flex'; irPaso(1); }
-        function cerrarModalCarrito() { document.getElementById('modal-cart').style.display = 'none'; }
+        function abrirModalCarrito() {
+            if (Object.keys(carrito).length === 0) return alert("Agregá productos primero.");
+            renderizarItemsModal();
+            document.getElementById('modal-cart').style.display = 'flex';
+            irPaso(1);
+        }
+
+        function cerrarModalCarrito() {
+            document.getElementById('modal-cart').style.display = 'none';
+        }
 
         function irPaso(paso) {
-            document.querySelectorAll('#modal-cart .modal-step').forEach(s => s.classList.remove('activa'));
+            const steps = document.querySelectorAll('#modal-cart .modal-step');
+            for (let i = 0; i < steps.length; i++) { steps[i].classList.remove('activa'); }
+
             const btnAccion = document.getElementById('btn-accion-modal'), titulo = document.getElementById('modal-titulo'), btnVolver = document.getElementById('btn-volver');
-            if (paso === 1) { document.getElementById('paso-1').classList.add('activa'); btnVolver.style.display = 'none'; titulo.innerText = 'Tu Carrito'; btnAccion.innerText = 'Continuar'; btnAccion.setAttribute('onclick', 'irPaso(2)'); }
-            else if (paso === 2) { if (Object.keys(carrito).length === 0) { cerrarModalCarrito(); return; } document.getElementById('paso-2').classList.add('activa'); btnVolver.style.display = 'block'; titulo.innerText = 'Tus Datos de Envío'; btnAccion.innerText = 'Enviar pedido por WhatsApp'; btnAccion.setAttribute('onclick', 'enviarPedidoWhatsApp()'); }
+
+            if (paso === 1) {
+                document.getElementById('paso-1').classList.add('activa');
+                btnVolver.style.display = 'none';
+                titulo.innerText = 'Tu Carrito';
+                btnAccion.innerText = 'Continuar';
+                btnAccion.setAttribute('onclick', 'irPaso(2)');
+            } else if (paso === 2) {
+                if (Object.keys(carrito).length === 0) { cerrarModalCarrito(); return; }
+                document.getElementById('paso-2').classList.add('activa');
+                btnVolver.style.display = 'block';
+                titulo.innerText = 'Tus Datos de Envío';
+                btnAccion.innerText = 'Enviar pedido por WhatsApp';
+                btnAccion.setAttribute('onclick', 'enviarPedidoWhatsApp()');
+            }
         }
 
-        function verificarMetodoPago() { document.getElementById('caja-efectivo').style.display = (document.getElementById('cli-pago').value === 'Efectivo') ? 'block' : 'none'; }
+        function verificarMetodoPago() {
+            document.getElementById('caja-efectivo').style.display = (document.getElementById('cli-pago').value === 'Efectivo') ? 'block' : 'none';
+        }
 
         async function enviarPedidoWhatsApp() {
-            const nombre = document.getElementById('cli-nombre').value.trim(), direccion = document.getElementById('cli-direccion').value.trim(), telefono = document.getElementById('cli-telefono').value.trim(), pago = document.getElementById('cli-pago').value, abonaCon = document.getElementById('cli-abona-con').value.trim();
-            if (!nombre || !direccion || !telefono) return alert("Por favor, completá todos tus datos (Nombre, Dirección y Teléfono).");
+            const nombre = document.getElementById('cli-nombre').value.trim();
+            const direccion = document.getElementById('cli-direccion').value.trim();
+            const telefono = document.getElementById('cli-telefono').value.trim();
+            const pago = document.getElementById('cli-pago').value;
+            const abonaCon = document.getElementById('cli-abona-con').value.trim();
+
+            if (!nombre || !direccion || !telefono) {
+                return alert("Por favor, completá todos tus datos (Nombre, Dirección y Teléfono).");
+            }
+
             const t = calcularTotales();
-            if (pago === 'Efectivo') { if (!abonaCon) return alert("Por favor, indicá con cuánto vas a pagar para poder enviarte el vuelto correcto."); if (parseFloat(abonaCon) < t.totalGeneral) return alert(`El monto a abonar ($${abonaCon}) debe ser mayor o igual al total de tu compra ($${t.totalGeneral}).`); }
+            if (pago === 'Efectivo') {
+                if (!abonaCon) return alert("Por favor, indicá con cuánto vas a pagar para poder enviarte el vuelto correcto.");
+                if (parseFloat(abonaCon) < t.totalGeneral) return alert('El monto a abonar ($' + abonaCon + ') debe ser mayor o igual al total de tu compra ($' + t.totalGeneral + ').');
+            }
 
-            let texto = `¡Hola *La Dolce*! Quisiera hacer el siguiente pedido:\n\n*MI PEDIDO:*\n`;
-            for (let p in carrito) { texto += `- ${carrito[p].cantidad}x ${p} ($${carrito[p].precio * carrito[p].cantidad})\n`; }
-            texto += `Envío: $${costoEnvioFijo}\n*Total a pagar: $${t.totalGeneral}*\n\n*MIS DATOS:*\nNombre: ${nombre}\nDirección: ${direccion}\nTeléfono: ${telefono}\n`;
-            texto += pago === 'Efectivo' ? `Pago: Efectivo (Abona con $${abonaCon})\n` : `Pago: ${pago}\n`;
+            // 1. Armamos solo los datos crudos para mandarlos a la base de datos
+            const datosClienteBD = nombre + ' (' + direccion + ') | Tel: ' + telefono;
+            let idRealPedido = "";
 
-            // --- AVISAMOS AL BACKEND QUE ENTRÓ UN PEDIDO ---
+            // 2. PRIMERO mandamos a guardar a C# y esperamos la respuesta con el ID
             try {
-                await fetch(`${baseURL}/Pedidos/Nuevo`, {
+                const res = await fetch(baseURL + '/Pedidos/Nuevo', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        cliente: `${nombre} (${direccion})`,
+                        cliente: datosClienteBD,
                         total: t.totalGeneral
                     })
                 });
-            } catch (error) {
-                console.error("No se pudo registrar en el Admin", error);
-            }
-            // ------------------------------------------------
 
+                if (res.ok) {
+                    const data = await res.json();
+                    idRealPedido = data.id; // ¡Acá atrapamos el ID real de SQL!
+                } else {
+                    alert("Hubo un error al registrar el pedido.");
+                    return; // Cortamos la ejecución si falla
+                }
+            } catch (error) {
+                console.error("Error de conexión con el servidor", error);
+                alert("No se pudo conectar con el servidor.");
+                return;
+            }
+
+            // 3. SEGUNDO, ahora que tenemos el ID, armamos el mensaje de WhatsApp
+            let texto = '¡Hola *La Dolce*! Quisiera hacer el siguiente pedido:\n\n*NÚMERO DE PEDIDO: #' + idRealPedido + '*\n\n*MI PEDIDO:*\n';
+            for (let p in carrito) {
+                texto += '- ' + carrito[p].cantidad + 'x ' + p + ' ($' + (carrito[p].precio * carrito[p].cantidad) + ')\n';
+            }
+
+            texto += 'Envío: $' + costoEnvioFijo + '\n*Total a pagar: $' + t.totalGeneral + '*\n\n*MIS DATOS:*\nNombre: ' + nombre + '\nDirección: ' + direccion + '\nTeléfono: ' + telefono + '\n';
+            texto += pago === 'Efectivo' ? 'Pago: Efectivo (Abona con $' + abonaCon + ')\n' : 'Pago: ' + pago + '\n';
+
+            // 4. TERCERO, abrimos WhatsApp
             const numeroDestino = numeroWhatsAppDinamico !== "" ? numeroWhatsAppDinamico : "5491100000000";
-            window.open(`https://wa.me/${numeroDestino}?text=${encodeURIComponent(texto)}`, '_blank');
+            window.open('https://wa.me/' + numeroDestino + '?text=' + encodeURIComponent(texto), '_blank');
             window.location.reload();
         }
 

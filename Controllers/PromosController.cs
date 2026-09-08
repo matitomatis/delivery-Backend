@@ -57,6 +57,45 @@ namespace delivery.Controllers
             return Ok();
         }
 
+        // --- MÉTODO PUT PARA EDITAR ---
+        [HttpPut("{id}")]
+        public async Task<ActionResult> EditarPromo(int id, PromoCreateDTO promoDto)
+        {
+            var promoExistente = await _repository.GetByIdAsync(id);
+            if (promoExistente == null) return NotFound();
+
+            // 1. Pisamos los datos básicos
+            promoExistente.Nombre = promoDto.Nombre;
+            promoExistente.Descripcion = promoDto.Descripcion;
+            promoExistente.Categoria = promoDto.Categoria;
+            promoExistente.PrecioVenta = promoDto.PrecioVenta;
+
+            // 2. Solo actualizamos la foto si subiste una nueva
+            if (!string.IsNullOrEmpty(promoDto.UrlImagen))
+            {
+                promoExistente.UrlImagen = promoDto.UrlImagen;
+            }
+
+            // 3. Actualizamos los artículos que contiene el combo
+            // Vaciamos la lista vieja y la volvemos a llenar con los datos del formulario
+            if (promoExistente.DetallePromos != null)
+            {
+                promoExistente.DetallePromos.Clear();
+                foreach (var art in promoDto.Articulos)
+                {
+                    promoExistente.DetallePromos.Add(new DetallePromo
+                    {
+                        CodArticulo = art.CodArticulo,
+                        Cantidad = art.Cantidad
+                    });
+                }
+            }
+
+            await _repository.SaveAsync(promoExistente);
+            return Ok();
+        }
+        // ------------------------------
+
         [HttpDelete("{id}")]
         public async Task<ActionResult> BorrarPromo(int id)
         {

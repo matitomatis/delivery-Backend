@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using delivery.DTOs;
-using System.Linq; // Necesario para el .Select()
+using System.Linq;
 
 namespace delivery.Controllers
 {
@@ -35,7 +35,7 @@ namespace delivery.Controllers
                 Costo = a.Costo,
                 Stock = a.Stock,
                 UrlImagen = a.UrlImagen,
-                CategoriaId = a.CategoriaId// <--- Agregado acá
+                CategoriaId = a.CategoriaId
             }).ToList();
 
             return Ok(articulosDto);
@@ -48,7 +48,7 @@ namespace delivery.Controllers
             var articulo = await _repository.GetByIdAsync(id);
             if (articulo == null)
             {
-                return NotFound(); // Devuelve un 404 si no existe
+                return NotFound();
             }
             return Ok(articulo);
         }
@@ -57,20 +57,49 @@ namespace delivery.Controllers
         [HttpPost]
         public async Task<ActionResult> Post(ArticuloCreateDTO articuloDto)
         {
-            // Armamos la Entidad real usando los datos del formulario DTO
             var nuevoArticulo = new Articulo
             {
                 Descripcion = articuloDto.Descripcion,
                 Costo = articuloDto.Costo,
                 Stock = articuloDto.Stock,
                 UrlImagen = articuloDto.UrlImagen,
-                CategoriaId = articuloDto.CategoriaId // <--- ¡Conectamos el ID acá!
+                CategoriaId = articuloDto.CategoriaId
             };
 
-            // La mandamos a guardar
             await _repository.SaveAsync(nuevoArticulo);
             return Ok();
         }
+
+        // --- MÉTODO PUT PARA EDITAR ---
+        [HttpPut("{id}")]
+        public async Task<ActionResult> EditarArticulo(int id, ArticuloCreateDTO articuloDto)
+        {
+            // Buscamos el artículo original
+            var articuloExistente = await _repository.GetByIdAsync(id);
+            if (articuloExistente == null)
+            {
+                return NotFound();
+            }
+
+            // Le pisamos los datos viejos con los nuevos
+            articuloExistente.Descripcion = articuloDto.Descripcion;
+            articuloExistente.Costo = articuloDto.Costo;
+            articuloExistente.Stock = articuloDto.Stock;
+            articuloExistente.CategoriaId = articuloDto.CategoriaId;
+
+            // Solo actualizamos la foto si subiste una nueva en el administrador
+            if (!string.IsNullOrEmpty(articuloDto.UrlImagen))
+            {
+                articuloExistente.UrlImagen = articuloDto.UrlImagen;
+            }
+
+            // Nota: Asumo que en tu repositorio el "SaveAsync" sirve tanto para crear como para guardar cambios. 
+            // Si tenés un método "UpdateAsync" creado en tu repositorio, cambialo acá abajo:
+            await _repository.SaveAsync(articuloExistente);
+
+            return Ok();
+        }
+        // ------------------------------
 
         // DELETE: api/Articulos/5
         [HttpDelete("{id}")]
