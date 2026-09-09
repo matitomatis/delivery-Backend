@@ -1,6 +1,6 @@
 ﻿using delivery.Data.Models;
-using delivery.Models; // Ajustalo a tu namespace
-using delivery.Repositories; // Ajustalo a tu namespace
+using delivery.Models;
+using delivery.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
@@ -42,6 +42,7 @@ namespace delivery.Controllers
                 config.Instagram = nuevaConfig.Instagram;
                 config.Facebook = nuevaConfig.Facebook;
                 config.GoogleMaps = nuevaConfig.GoogleMaps;
+                config.Alias = nuevaConfig.Alias; // <-- ¡ACÁ ESTÁ LA MAGIA!
             }
 
             await _context.SaveChangesAsync();

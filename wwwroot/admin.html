@@ -780,6 +780,12 @@
                     <input type="text" id="config-maps" placeholder="https://maps.google.com/..." style="padding: 8px;">
                 </div>
 
+                <!-- NUEVO: CAJA PARA EL ALIAS -->
+                <div class="form-group">
+                    <label style="font-size: 0.8rem;"><i class="fas fa-university text-muted"></i> Alias Transferencia:</label>
+                    <input type="text" id="config-alias" placeholder="Ej: LADOLCE.DELIVERY" style="padding: 8px;">
+                </div>
+
                 <button class="btn-guardar" onclick="guardarConfigLocal()" style="padding: 10px;">Actualizar Datos</button>
                 <p id="mensaje-config" style="font-weight:bold; margin-top:10px; min-height: 20px; font-size: 0.85rem; text-align:center;"></p>
             </div>
@@ -827,15 +833,15 @@
                     msjSinPedidos.style.display = 'none';
                     data.forEach(item => {
                         tbody.innerHTML += `
-                            <tr>
-                                <td>${item.fecha}</td>
-                                <td><strong>${item.cliente}</strong></td>
-                                <td style="font-weight: bold; color: var(--text-main);">$${item.total}</td>
-                                <td id="acciones-pedido-${item.id}">
-                                    <button class="btn-guardar" style="width: auto; padding: 6px 12px; font-size: 0.85rem; margin-right: 5px; margin-bottom: 5px;" onclick="cambiarEstadoPedido(${item.id}, 'Completado')"><i class="fas fa-check"></i></button>
-                                    <button class="btn-borrar" style="margin-bottom: 5px;" onclick="cambiarEstadoPedido(${item.id}, 'Cancelado')"><i class="fas fa-times"></i></button>
-                                </td>
-                            </tr>`;
+                                <tr>
+                                    <td>${item.fecha}</td>
+                                    <td><strong>${item.cliente}</strong></td>
+                                    <td style="font-weight: bold; color: var(--text-main);">$${item.total}</td>
+                                    <td id="acciones-pedido-${item.id}">
+                                        <button class="btn-guardar" style="width: auto; padding: 6px 12px; font-size: 0.85rem; margin-right: 5px; margin-bottom: 5px;" onclick="cambiarEstadoPedido(${item.id}, 'Completado')"><i class="fas fa-check"></i></button>
+                                        <button class="btn-borrar" style="margin-bottom: 5px;" onclick="cambiarEstadoPedido(${item.id}, 'Cancelado')"><i class="fas fa-times"></i></button>
+                                    </td>
+                                </tr>`;
                     });
                 }
             } catch (e) { }
@@ -887,12 +893,19 @@
                     if (data.instagram) document.getElementById('config-ig').value = data.instagram;
                     if (data.facebook) document.getElementById('config-fb').value = data.facebook;
                     if (data.googleMaps) document.getElementById('config-maps').value = data.googleMaps;
+                    if (data.alias) document.getElementById('config-alias').value = data.alias; // <-- Agregado
                 }
             } catch (e) { }
         }
 
         async function guardarConfigLocal() {
-            const payload = { whatsApp: document.getElementById('config-wpp').value, instagram: document.getElementById('config-ig').value, facebook: document.getElementById('config-fb').value, googleMaps: document.getElementById('config-maps').value };
+            const payload = {
+                whatsApp: document.getElementById('config-wpp').value,
+                instagram: document.getElementById('config-ig').value,
+                facebook: document.getElementById('config-fb').value,
+                googleMaps: document.getElementById('config-maps').value,
+                alias: document.getElementById('config-alias').value // <-- Agregado
+            };
             const msj = document.getElementById('mensaje-config');
             try {
                 const res = await fetch(`${baseUrl}/Configuracion`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
@@ -935,12 +948,12 @@
                     const nombreSeguro = nombre.replace(/'/g, "\\'");
 
                     tbody.innerHTML += `<tr>
-                        <td><strong>${nombre}</strong></td>
-                        <td>
-                            <button class="btn-editar" onclick="prepararEdicionRubro(${id}, '${nombreSeguro}')"><i class="fas fa-pen"></i></button>
-                            <button class="btn-borrar" onclick="eliminarRubro(${id})"><i class="fas fa-trash"></i></button>
-                        </td>
-                    </tr>`;
+                            <td><strong>${nombre}</strong></td>
+                            <td>
+                                <button class="btn-editar" onclick="prepararEdicionRubro(${id}, '${nombreSeguro}')"><i class="fas fa-pen"></i></button>
+                                <button class="btn-borrar" onclick="eliminarRubro(${id})"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>`;
                     selectRubroCategoria.innerHTML += `<option value="${id}">${nombre}</option>`;
                 });
             } catch (e) { }
@@ -1009,12 +1022,12 @@
                     const nombreSeguro = nombre.replace(/'/g, "\\'");
 
                     tbody.innerHTML += `<tr>
-                        <td><strong>${nombre}</strong></td>
-                        <td>
-                            <button class="btn-editar" onclick="prepararEdicionCategoria(${id}, '${nombreSeguro}', ${codRubro})"><i class="fas fa-pen"></i></button>
-                            <button class="btn-borrar" onclick="eliminarCategoria(${id})"><i class="fas fa-trash"></i></button>
-                        </td>
-                    </tr>`;
+                            <td><strong>${nombre}</strong></td>
+                            <td>
+                                <button class="btn-editar" onclick="prepararEdicionCategoria(${id}, '${nombreSeguro}', ${codRubro})"><i class="fas fa-pen"></i></button>
+                                <button class="btn-borrar" onclick="eliminarCategoria(${id})"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>`;
                     selectArticulo.innerHTML += `<option value="${id}">${nombre}</option>`;
                 });
             } catch (e) { }
@@ -1082,13 +1095,13 @@
                     const descSegura = item.descripcion.replace(/'/g, "\\'");
 
                     tbody.innerHTML += `<tr>
-                        <td><strong>${item.descripcion}</strong></td>
-                        <td>$${item.costo}</td>
-                        <td>
-                            <button class="btn-editar" onclick="prepararEdicionArticulo(${id}, '${descSegura}', ${item.costo}, ${catId})"><i class="fas fa-pen"></i></button>
-                            <button class="btn-borrar" onclick="eliminarArticulo(${id})"><i class="fas fa-trash"></i></button>
-                        </td>
-                    </tr>`;
+                            <td><strong>${item.descripcion}</strong></td>
+                            <td>$${item.costo}</td>
+                            <td>
+                                <button class="btn-editar" onclick="prepararEdicionArticulo(${id}, '${descSegura}', ${item.costo}, ${catId})"><i class="fas fa-pen"></i></button>
+                                <button class="btn-borrar" onclick="eliminarArticulo(${id})"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>`;
                     cajaPromos.innerHTML += `<div class="fila-articulo-promo"><span>${item.descripcion}</span><input type="number" min="0" value="0" data-id="${id}" class="cant-articulo-promo"></div>`;
                 });
             } catch (e) { }
@@ -1163,13 +1176,13 @@
                     const nombreSeguro = item.nombre.replace(/'/g, "\\'");
 
                     tbody.innerHTML += `<tr>
-                        <td><strong>${item.nombre}</strong></td>
-                        <td>$${item.precioVenta}</td>
-                        <td>
-                            <button class="btn-editar" onclick="prepararEdicionPromo(${id})"><i class="fas fa-pen"></i></button>
-                            <button class="btn-borrar" onclick="eliminarPromocion(${id})"><i class="fas fa-trash"></i></button>
-                        </td>
-                    </tr>`;
+                            <td><strong>${item.nombre}</strong></td>
+                            <td>$${item.precioVenta}</td>
+                            <td>
+                                <button class="btn-editar" onclick="prepararEdicionPromo(${id})"><i class="fas fa-pen"></i></button>
+                                <button class="btn-borrar" onclick="eliminarPromocion(${id})"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>`;
                 });
             } catch (e) { }
         }
@@ -1190,7 +1203,7 @@
                 if (promo.detallePromos && promo.detallePromos.length > 0) {
                     promo.detallePromos.forEach(det => {
                         const input = document.querySelector(`.cant-articulo-promo[data-id='${det.codArticulo}']`);
-                        if(input) input.value = det.cantidad;
+                        if (input) input.value = det.cantidad;
                     });
                 }
 
@@ -1198,7 +1211,7 @@
                 document.getElementById('btn-submit-promo').innerText = 'Actualizar Promoción';
                 document.getElementById('btn-cancelar-promo').style.display = 'block';
                 window.scrollTo(0, 0);
-            } catch(e) { alert("Error al cargar detalles de la promoción"); }
+            } catch (e) { alert("Error al cargar detalles de la promoción"); }
         }
 
         function cancelarEdicionPromo() {

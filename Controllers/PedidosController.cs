@@ -25,16 +25,13 @@ namespace delivery.Controllers
         public async Task<IActionResult> GetPendientes()
         {
             var pedidos = await _context.Pedidos
-                .Include(p => p.Cliente) // <-- Agregamos esto para traer los datos del cliente unidos al pedido
+                .Include(p => p.Cliente) // Traemos los datos del cliente unidos al pedido
                 .Where(p => p.Estado == "Pendiente")
                 .Select(p => new
                 {
                     id = p.CodPedido,
                     fecha = p.Fecha.ToString("dd/MM/yyyy HH:mm"),
-
-                    // Acá armamos la etiqueta del Admin usando el ID real y los datos guardados
                     cliente = p.Cliente != null ? "#" + p.CodPedido + " - " + p.Cliente.Nombre : "#" + p.CodPedido + " - Sin Datos",
-
                     total = p.Total
                 })
                 .OrderByDescending(p => p.id)
@@ -68,8 +65,33 @@ namespace delivery.Controllers
             _context.Pedidos.Add(nuevoPedido);
             await _context.SaveChangesAsync();
 
-            // <-- ¡MAGIA ACÁ! Devolvemos el ID que SQL le acaba de asignar al pedido
+            // Devolvemos el ID que SQL le acaba de asignar al pedido
             return Ok(new { id = nuevoPedido.CodPedido });
+        }
+
+        // PUT: api/Pedidos/5 (NUEVO: PARA EDITAR EL PEDIDO DESDE EL LINK)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> EditarPedido(int id, [FromBody] PedidoNuevoDto dto)
+        {
+            // Buscamos el pedido incluyendo a su cliente para poder actualizarle los datos
+            var pedido = await _context.Pedidos
+                .Include(p => p.Cliente)
+                .FirstOrDefaultAsync(p => p.CodPedido == id);
+
+            if (pedido == null) return NotFound();
+
+            // Actualizamos el total de la compra
+            pedido.Total = dto.Total;
+
+            // Actualizamos los datos del cliente (Nombre, Dirección, Teléfono) que vienen en el string
+            if (pedido.Cliente != null)
+            {
+                pedido.Cliente.Nombre = dto.Cliente;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { id = pedido.CodPedido });
         }
 
         // PUT: api/Pedidos/5/Estado

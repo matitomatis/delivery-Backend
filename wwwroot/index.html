@@ -205,7 +205,13 @@
             margin-bottom: 12px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.03);
             border: 1px solid var(--border);
+            cursor: pointer;
+            transition: 0.2s;
         }
+
+            .producto:active {
+                background: #f3f4f6;
+            }
 
         .producto-info {
             flex: 1;
@@ -227,6 +233,10 @@
                 font-size: 0.75rem;
                 color: var(--text-muted);
                 line-height: 1.3;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
             }
 
         .precio {
@@ -238,14 +248,18 @@
         .producto-img-container {
             position: relative;
             width: 90px;
+            height: 90px;
+            flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
+            background: #ffffff;
+            border-radius: 10px;
         }
 
             .producto-img-container img {
                 width: 100%;
-                height: 90px;
+                height: 100%;
                 object-fit: cover;
                 border-radius: 10px;
             }
@@ -267,6 +281,131 @@
             cursor: pointer;
             border: 1px solid var(--border);
             font-weight: bold;
+        }
+
+        /* --- NUEVO: PANTALLA DETALLE DE PRODUCTO (ESTILO APP) --- */
+        .modal-producto-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            z-index: 2500;
+            display: none;
+            flex-direction: column;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .btn-flotante-accion {
+            position: absolute;
+            top: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.1rem;
+            color: var(--text-dark);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .det-img-container {
+            width: 100%;
+            height: 40vh; /* Ocupa el 40% superior de la pantalla */
+            background: #fff;
+            position: relative;
+            border-radius: 0 0 25px 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .det-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Evita recortes */
+            padding: 25px; /* Evita que choque con los bordes */
+            box-sizing: border-box;
+        }
+
+        .det-body {
+            padding: 20px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+            .det-body h2 {
+                margin: 0 0 5px 0;
+                font-size: 1.6rem;
+                color: var(--text-dark);
+            }
+
+        .det-precio {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .det-body p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .det-bottom-bar {
+            background: var(--white);
+            padding: 15px 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            border-top: 1px solid var(--border);
+            padding-bottom: max(15px, env(safe-area-inset-bottom));
+        }
+
+        .det-qty-controls {
+            display: flex;
+            align-items: center;
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 5px;
+        }
+
+            .det-qty-controls button {
+                background: none;
+                border: none;
+                width: 40px;
+                height: 40px;
+                font-size: 1.3rem;
+                cursor: pointer;
+                color: var(--text-dark);
+            }
+
+            .det-qty-controls span {
+                width: 30px;
+                text-align: center;
+                font-weight: bold;
+                font-size: 1.1rem;
+            }
+
+        .det-bottom-bar .btn-principal {
+            flex-grow: 1;
+            padding: 16px;
+            font-size: 1.1rem;
         }
 
         /* --- CARRITO FLOTANTE --- */
@@ -311,10 +450,6 @@
             display: flex;
             align-items: center;
             gap: 8px;
-        }
-
-        .cart-total-text {
-            font-size: 1.1rem;
         }
 
         /* --- NAV INFERIOR --- */
@@ -488,18 +623,6 @@
                 background: var(--white);
             }
 
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
         /* --- MODAL CARRITO --- */
         .modal-overlay {
             position: fixed;
@@ -522,17 +645,6 @@
             border-radius: 20px 20px 0 0;
             display: flex;
             flex-direction: column;
-            animation: slideUp 0.3s ease-out;
-        }
-
-        @keyframes slideUp {
-            from {
-                transform: translateY(100%);
-            }
-
-            to {
-                transform: translateY(0);
-            }
         }
 
         .modal-header {
@@ -693,10 +805,12 @@
             padding: 15px;
             background: var(--white);
             border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
         }
 
         .btn-principal {
-            width: 100%;
+            flex: 1;
             background: var(--success);
             color: white;
             border: none;
@@ -708,7 +822,28 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            transition: 0.2s;
         }
+
+        .btn-secundario {
+            flex: 1;
+            background: var(--white);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 14px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: 0.2s;
+        }
+
+            .btn-secundario:hover {
+                background: var(--primary-light);
+            }
     </style>
 </head>
 <body>
@@ -750,6 +885,7 @@
         <div class="nav-bot-item" onclick="abrirModalCarrito()"><i class="fas fa-shopping-bag"></i><span>Carrito</span></div>
     </nav>
 
+    <!-- MENÚ LATERAL -->
     <div class="menu-lateral-overlay" id="menu-lateral" onclick="cerrarMenuLateral()">
         <div class="menu-lateral-content" onclick="event.stopPropagation()">
             <div class="menu-lateral-header"><h2>Categorías</h2><button class="btn-icon" onclick="cerrarMenuLateral()"><i class="fas fa-times"></i></button></div>
@@ -757,6 +893,29 @@
         </div>
     </div>
 
+    <!-- PANTALLA DE DETALLE DE PRODUCTO INDIVIDUAL -->
+    <div class="modal-producto-overlay" id="modal-producto">
+        <div class="det-img-container">
+            <button class="btn-flotante-accion" style="left: 15px;" onclick="cerrarModalProducto()"><i class="fas fa-arrow-left"></i></button>
+            <button class="btn-flotante-accion" style="right: 15px;" onclick="compartirProducto()"><i class="fas fa-share-alt"></i></button>
+            <img src="" id="det-img" class="det-img">
+        </div>
+        <div class="det-body">
+            <h2 id="det-nombre">Nombre</h2>
+            <div class="det-precio" id="det-precio">$0</div>
+            <p id="det-desc" class="det-desc">Descripción</p>
+        </div>
+        <div class="det-bottom-bar">
+            <div class="det-qty-controls">
+                <button onclick="cambiarCantDetalle(-1)">-</button>
+                <span id="det-cant">1</span>
+                <button onclick="cambiarCantDetalle(1)">+</button>
+            </div>
+            <button class="btn-principal" id="btn-agregar-detalle" onclick="agregarDesdeDetalle()">Agregar $0</button>
+        </div>
+    </div>
+
+    <!-- MODAL CARRITO -->
     <div class="modal-overlay" id="modal-cart">
         <div class="modal-content">
             <div class="modal-header">
@@ -775,11 +934,19 @@
                 </div>
                 <div id="paso-2" class="modal-step">
                     <p style="margin-top:0; color:var(--text-muted); font-size:0.85rem;">Completá la información para continuar</p>
-                    <div class="form-group"><label>👤 Tu Nombre y Apellido</label><input type="text" id="cli-nombre" placeholder="Ej: Lucas Martinez"></div>
-                    <div class="form-group"><label>📍 Dirección de Entrega</label><input type="text" id="cli-direccion" placeholder="Calle, número, piso/depto"></div>
-                    <div class="form-group"><label>📞 Teléfono de Contacto</label><input type="tel" id="cli-telefono" placeholder="Ej: 351 1234567"></div>
-                    <div class="form-group"><label>💳 Forma de Pago</label><select id="cli-pago" onchange="verificarMetodoPago()"><option value="Efectivo">Efectivo</option><option value="Mercado Pago / Transferencia">Mercado Pago / Transferencia</option></select></div>
-                    <div class="form-group" id="caja-efectivo"><label>💵 ¿Con cuánto vas a pagar? (Para el vuelto)</label><input type="number" id="cli-abona-con" placeholder="Ej: 30000"></div>
+                    <div class="form-group"><label>👤 Tu Nombre y Apellido</label><input type="text" id="cli-nombre" placeholder="Ej: Lucas Martinez" oninput="guardarDatosCliente()"></div>
+                    <div class="form-group"><label>📍 Dirección de Entrega</label><input type="text" id="cli-direccion" placeholder="Calle, número, piso/depto" oninput="guardarDatosCliente()"></div>
+                    <div class="form-group"><label>📞 Teléfono de Contacto</label><input type="tel" id="cli-telefono" placeholder="Ej: 351 1234567" oninput="guardarDatosCliente()"></div>
+                    <div class="form-group"><label>💳 Forma de Pago</label><select id="cli-pago" onchange="verificarMetodoPago(); guardarDatosCliente();"><option value="Efectivo">Efectivo</option><option value="Mercado Pago / Transferencia">Mercado Pago / Transferencia</option></select></div>
+
+                    <div class="form-group" id="caja-efectivo"><label>💵 ¿Con cuánto vas a pagar? (Para el vuelto)</label><input type="number" id="cli-abona-con" placeholder="Ej: 30000" oninput="guardarDatosCliente()"></div>
+
+                    <div class="form-group" id="caja-transferencia" style="display:none; background: #e0f2fe; padding: 15px; border-radius: 8px; border: 1px solid #bae6fd;">
+                        <p style="margin: 0 0 5px 0; font-size: 0.85rem; color: #0369a1;">Transferí al siguiente Alias:</p>
+                        <p id="alias-display" style="margin: 0 0 10px 0; font-weight: bold; color: #0284c7; font-size: 1.2rem; user-select: all;">Cargando...</p>
+                        <p style="margin: 0; font-size: 0.8rem; color: #0369a1;">⚠️ <b>Importante:</b> El pedido será confirmado únicamente cuando envíes el comprobante por WhatsApp.</p>
+                    </div>
+
                     <div class="resumen-box" style="margin-top:20px; padding:15px;">
                         <div style="font-weight:bold; margin-bottom:15px; font-size:0.85rem;">✅ Resumen de tu pedido</div>
                         <div class="resumen-row"><span id="txt2-subtotal-cant">0 productos</span><span id="txt2-subtotal-monto">$0</span></div>
@@ -788,41 +955,227 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer"><button class="btn-principal" id="btn-accion-modal" onclick="irPaso(2)">Continuar</button></div>
+            <div class="modal-footer">
+                <button class="btn-secundario" id="btn-seguir-comprando" onclick="cerrarModalCarrito()">Seguir agregando</button>
+                <button class="btn-principal" id="btn-accion-modal" onclick="irPaso(2)">Continuar</button>
+            </div>
         </div>
     </div>
 
-    <!-- SCRIPT CORREGIDO SIN COMILLAS INVERTIDAS -->
     <script>
         const baseURL = '/api';
         const imgGris = 'https://via.placeholder.com/150/555555/ffffff?text=Sin+Foto';
 
+        const fetchOptions = {
+            headers: { 'ngrok-skip-browser-warning': 'true' }
+        };
+
         let costoEnvioFijo = 0;
-        let carrito = {};
+        let carrito = JSON.parse(localStorage.getItem('carritoLaDolce')) || {};
         window.todosLosProductos = [];
         let numeroWhatsAppDinamico = '';
+        let aliasDinamico = '';
+        let pedidoEnEdicion = null;
+
+        let prodSeleccionadoDetalle = null;
+        let cantidadDetalle = 1;
+
+        function guardarCarritoEnStorage() {
+            localStorage.setItem('carritoLaDolce', JSON.stringify(carrito));
+        }
+
+        function guardarDatosCliente() {
+            const datos = {
+                nombre: document.getElementById('cli-nombre').value,
+                direccion: document.getElementById('cli-direccion').value,
+                telefono: document.getElementById('cli-telefono').value,
+                pago: document.getElementById('cli-pago').value,
+                abonaCon: document.getElementById('cli-abona-con').value
+            };
+            localStorage.setItem('datosClienteLaDolce', JSON.stringify(datos));
+        }
 
         async function inicializarApp() {
             try {
-                const resEnvio = await fetch(baseURL + '/TarifaEnvio');
+                const resEnvio = await fetch(baseURL + '/TarifaEnvio', fetchOptions);
                 if (resEnvio.ok) { costoEnvioFijo = await resEnvio.json(); }
 
-                const resConfig = await fetch(baseURL + '/Configuracion');
+                const resConfig = await fetch(baseURL + '/Configuracion', fetchOptions);
                 if (resConfig.ok) {
                     const config = await resConfig.json();
                     if (config.whatsApp) numeroWhatsAppDinamico = config.whatsApp;
+                    const aliasRecibido = config.alias || config.Alias;
+                    if (aliasRecibido) {
+                        aliasDinamico = aliasRecibido;
+                        const aliasDisplay = document.getElementById('alias-display');
+                        if (aliasDisplay) aliasDisplay.innerText = aliasDinamico;
+                    } else {
+                        document.getElementById('alias-display').innerText = "Aún no configurado";
+                    }
                 }
-            } catch (e) { }
+            } catch (e) { console.error("Error de config", e); }
+
             await cargarMenu();
             iniciarCarruselCategorias();
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const recoverData = urlParams.get('recover');
+            const recoverId = urlParams.get('id');
+            const itemCompartido = urlParams.get('item');
+
+            if (recoverData && recoverId) {
+                try {
+                    const resPendientes = await fetch(baseURL + '/Pedidos/Pendientes', fetchOptions);
+                    if (resPendientes.ok) {
+                        const pendientes = await resPendientes.json();
+                        const siguePendiente = pendientes.some(p => (p.id || p.Id) == recoverId);
+
+                        if (!siguePendiente) {
+                            alert("⚠️ Este pedido ya fue preparado o finalizado por el local y no se puede modificar. Si necesitás algo más, por favor armá un pedido nuevo.");
+                        } else {
+                            pedidoEnEdicion = recoverId;
+
+                            let carritoLiviano = {};
+                            try {
+                                carritoLiviano = JSON.parse(recoverData);
+                            } catch (e) {
+                                carritoLiviano = JSON.parse(decodeURIComponent(recoverData));
+                            }
+
+                            carrito = {};
+                            let hayProductos = false;
+
+                            for (let nombreProd in carritoLiviano) {
+                                const prodOriginal = window.todosLosProductos.find(p => p.nombre === nombreProd || p.nombre.replace(/'/g, "\\'") === nombreProd);
+                                if (prodOriginal) {
+                                    carrito[nombreProd] = {
+                                        precio: prodOriginal.precio,
+                                        cantidad: carritoLiviano[nombreProd],
+                                        img: prodOriginal.img
+                                    };
+                                    hayProductos = true;
+                                }
+                            }
+
+                            if (hayProductos) {
+                                guardarCarritoEnStorage();
+                                localStorage.setItem('modalPasoLaDolce', '1');
+
+                                setTimeout(() => {
+                                    document.getElementById('modal-cart').style.display = 'flex';
+                                    renderizarItemsModal();
+                                    irPaso(1);
+                                }, 300);
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error al recuperar el carrito", e);
+                }
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            if (itemCompartido) {
+                const nombreItem = decodeURIComponent(itemCompartido);
+                setTimeout(() => {
+                    abrirModalProducto(nombreItem);
+                }, 500);
+            }
+
+            const datosGuardados = JSON.parse(localStorage.getItem('datosClienteLaDolce'));
+            if (datosGuardados) {
+                document.getElementById('cli-nombre').value = datosGuardados.nombre || '';
+                document.getElementById('cli-direccion').value = datosGuardados.direccion || '';
+                document.getElementById('cli-telefono').value = datosGuardados.telefono || '';
+                document.getElementById('cli-pago').value = datosGuardados.pago || 'Efectivo';
+                document.getElementById('cli-abona-con').value = datosGuardados.abonaCon || '';
+                verificarMetodoPago();
+            }
+
+            actualizarUIFlotante();
+
+            const pasoGuardado = localStorage.getItem('modalPasoLaDolce');
+            if (pasoGuardado && Object.keys(carrito).length > 0 && !itemCompartido) {
+                document.getElementById('modal-cart').style.display = 'flex';
+                renderizarItemsModal();
+                irPaso(parseInt(pasoGuardado));
+            }
         }
+
+        // --- LÓGICA DE LA PANTALLA DEL PRODUCTO INDIVIDUAL ---
+        function abrirModalProducto(nombre) {
+            const prod = window.todosLosProductos.find(p => p.nombre === nombre || p.nombre.replace(/'/g, "\\'") === nombre);
+            if (!prod) return;
+
+            prodSeleccionadoDetalle = prod;
+            cantidadDetalle = 1;
+
+            document.getElementById('det-img').src = prod.img;
+            document.getElementById('det-nombre').innerText = prod.nombre;
+            document.getElementById('det-desc').innerText = prod.desc;
+            document.getElementById('det-precio').innerText = '$' + prod.precio;
+
+            actualizarBotonDetalle();
+
+            document.getElementById('modal-producto').style.display = 'flex';
+
+            const nombreSeguro = encodeURIComponent(prod.nombre);
+            window.history.pushState({}, '', '?item=' + nombreSeguro);
+        }
+
+        function cerrarModalProducto() {
+            document.getElementById('modal-producto').style.display = 'none';
+            prodSeleccionadoDetalle = null;
+            window.history.pushState({}, '', window.location.pathname);
+        }
+
+        function cambiarCantDetalle(delta) {
+            cantidadDetalle += delta;
+            if (cantidadDetalle < 1) cantidadDetalle = 1;
+            actualizarBotonDetalle();
+        }
+
+        function actualizarBotonDetalle() {
+            document.getElementById('det-cant').innerText = cantidadDetalle;
+            const total = prodSeleccionadoDetalle.precio * cantidadDetalle;
+            document.getElementById('btn-agregar-detalle').innerText = `Agregar $${total}`;
+        }
+
+        function agregarDesdeDetalle() {
+            if (!prodSeleccionadoDetalle) return;
+
+            const nombre = prodSeleccionadoDetalle.nombre;
+            if (!carrito[nombre]) {
+                carrito[nombre] = { precio: prodSeleccionadoDetalle.precio, cantidad: cantidadDetalle, img: prodSeleccionadoDetalle.img };
+            } else {
+                carrito[nombre].cantidad += cantidadDetalle;
+            }
+
+            guardarCarritoEnStorage();
+            actualizarUIFlotante();
+            renderizarItemsModal();
+            cerrarModalProducto();
+        }
+
+        function compartirProducto() {
+            const url = window.location.href;
+            if (navigator.share) {
+                navigator.share({
+                    title: prodSeleccionadoDetalle.nombre,
+                    text: '¡Mirá este producto en La Dolce!',
+                    url: url
+                }).catch(console.error);
+            } else {
+                navigator.clipboard.writeText(url);
+                alert("¡Link copiado al portapapeles!");
+            }
+        }
+
 
         function iniciarCarruselCategorias() {
             const caja = document.getElementById('caja-categorias');
             if (!caja) return;
-
             let pausa = false;
-
             function moverCarrusel() {
                 if (!pausa) {
                     caja.scrollLeft += 1;
@@ -832,9 +1185,7 @@
                 }
                 requestAnimationFrame(moverCarrusel);
             }
-
             requestAnimationFrame(moverCarrusel);
-
             caja.addEventListener('touchstart', function () { pausa = true; });
             caja.addEventListener('touchend', function () { setTimeout(function () { pausa = false; }, 2000); });
             caja.addEventListener('mouseenter', function () { pausa = true; });
@@ -844,7 +1195,6 @@
         function separarEmojiDeTexto(textoCrudo) {
             if (!textoCrudo) return { emoji: '', texto: '' };
             const indexEspacio = textoCrudo.indexOf(' ');
-
             if (indexEspacio !== -1 && indexEspacio <= 5) {
                 const primeraParte = textoCrudo.substring(0, indexEspacio);
                 if (!/[a-zA-Z]/.test(primeraParte)) {
@@ -877,7 +1227,6 @@
         function toggleRubro(idRubro) {
             const submenu = document.getElementById('submenu-rubro-' + idRubro);
             const icono = document.getElementById('icono-rubro-' + idRubro);
-
             if (submenu.classList.contains('abierto')) {
                 submenu.classList.remove('abierto');
                 icono.classList.remove('rotado');
@@ -932,7 +1281,7 @@
                 const descLimpio = item.nombre.replace(/'/g, "\\'");
                 const promoHtml = item.esPromo ? '<p class="desc" style="color: var(--primary); font-weight: bold; margin-bottom: 2px;">¡COMBO ESPECIAL!</p>' : '';
 
-                listaBusqueda.innerHTML += '<div class="producto">' +
+                listaBusqueda.innerHTML += '<div class="producto" onclick="abrirModalProducto(\'' + descLimpio + '\')">' +
                     '<div class="producto-info">' +
                     promoHtml +
                     '<h3>' + item.nombre + '</h3>' +
@@ -941,7 +1290,7 @@
                     '</div>' +
                     '<div class="producto-img-container">' +
                     '<img src="' + item.img + '">' +
-                    '<button class="btn-add" onclick="agregarAlCarrito(\'' + descLimpio + '\', ' + item.precio + ', \'' + item.img + '\')">+</button>' +
+                    '<button class="btn-add" onclick="event.stopPropagation(); agregarAlCarrito(\'' + descLimpio + '\', ' + item.precio + ', \'' + item.img + '\')">+</button>' +
                     '</div>' +
                     '</div>';
             });
@@ -958,12 +1307,11 @@
                 listaMenuLateral.innerHTML = '';
                 contenedorVistas.innerHTML = '';
 
-                // 1. Promos fijas al inicio
                 cajaCategorias.innerHTML += '<div class="cat-item active" id="btn-cat-promos" onclick="filtrarCategoria(\'seccion-promos\', this)"><span class="cat-icon">🌟</span><span>Promos</span></div>';
                 listaMenuLateral.innerHTML += '<div class="menu-item-lateral" onclick="seleccionarCategoriaDesdeMenu(\'seccion-promos\', \'btn-cat-promos\')"><span class="cat-icon" style="margin-right:10px;">🌟</span> Promociones</div>';
                 contenedorVistas.innerHTML += '<div id="seccion-promos" class="seccion-vista activa"><div class="seccion-header-flex"><span class="cat-icon" style="color:var(--primary); font-size:1.3rem;">🌟</span><h2 class="seccion-titulo">Promociones</h2></div><p class="seccion-subtitulo">Combos especiales para vos</p><div id="lista-promos-contenido"></div></div>';
 
-                const resPromo = await fetch(baseURL + '/Promos');
+                const resPromo = await fetch(baseURL + '/Promos', fetchOptions);
                 if (resPromo.ok) {
                     const promos = await resPromo.json();
                     promos.forEach(function (item) {
@@ -971,34 +1319,33 @@
                         const nombrePromo = item.nombre || item.Nombre;
                         const precioPromo = item.precioVenta || item.PrecioVenta;
                         const nombreLimpio = nombrePromo.replace(/'/g, "\\'");
+                        const desc = "Todo lo que necesitás para armar el mejor plan.";
 
-                        window.todosLosProductos.push({ nombre: nombrePromo, desc: "Todo lo que necesitás para armar el mejor plan.", precio: precioPromo, img: img, esPromo: true });
+                        window.todosLosProductos.push({ nombre: nombrePromo, desc: desc, precio: precioPromo, img: img, esPromo: true });
 
-                        document.getElementById('lista-promos-contenido').innerHTML += '<div class="producto">' +
+                        document.getElementById('lista-promos-contenido').innerHTML += '<div class="producto" onclick="abrirModalProducto(\'' + nombreLimpio + '\')">' +
                             '<div class="producto-info">' +
                             '<p class="desc" style="color: var(--primary); font-weight: bold; margin-bottom: 2px;">¡COMBO ESPECIAL!</p>' +
                             '<h3>' + nombrePromo + '</h3>' +
-                            '<p class="desc">Todo lo que necesitás para armar el mejor plan.</p>' +
+                            '<p class="desc">' + desc + '</p>' +
                             '<div class="precio">$' + precioPromo + '</div>' +
                             '</div>' +
                             '<div class="producto-img-container">' +
                             '<img src="' + img + '">' +
-                            '<button class="btn-add" onclick="agregarAlCarrito(\'' + nombreLimpio + '\', ' + precioPromo + ', \'' + img + '\')">+</button>' +
+                            '<button class="btn-add" onclick="event.stopPropagation(); agregarAlCarrito(\'' + nombreLimpio + '\', ' + precioPromo + ', \'' + img + '\')">+</button>' +
                             '</div>' +
                             '</div>';
                     });
                 }
 
-                // 2. Traer Rubros y Categorias
-                const resRubros = await fetch(baseURL + '/Rubros');
+                const resRubros = await fetch(baseURL + '/Rubros', fetchOptions);
                 let rubros = [];
                 if (resRubros.ok) { rubros = await resRubros.json(); }
 
-                const resCat = await fetch(baseURL + '/Categorias');
+                const resCat = await fetch(baseURL + '/Categorias', fetchOptions);
                 let categorias = [];
                 if (resCat.ok) { categorias = await resCat.json(); }
 
-                // 3. CARGAR CARRUSEL (Todas las categorías siempre)
                 categorias.forEach(function (cat) {
                     const idCat = cat.codCategoria !== undefined ? cat.codCategoria : cat.CodCategoria;
                     const nombreCat = cat.nombre !== undefined ? cat.nombre : cat.Nombre;
@@ -1008,17 +1355,14 @@
                     const iconoHTML = format.emoji !== '' ? '<span class="cat-icon">' + format.emoji + '</span>' : '';
                     const iconoInline = format.emoji !== '' ? '<span class="cat-icon" style="color:var(--primary); font-size:1.3rem;">' + format.emoji + '</span>' : '';
 
-                    // Agregar siempre al carrusel superior
                     cajaCategorias.innerHTML += '<div class="cat-item" id="' + btnId + '" onclick="filtrarCategoria(\'seccion-cat-' + idCat + '\', this)">' + iconoHTML + '<span>' + format.texto + '</span></div>';
 
-                    // Aseguramos que la vista se cree acá para todas las categorías
                     let rubroPadre = rubros.find(function (r) { return (r.codRubro !== undefined ? r.codRubro : r.CodRubro) == (cat.codRubro !== undefined ? cat.codRubro : cat.CodRubro); });
                     let subtitulo = rubroPadre ? (rubroPadre.nombre !== undefined ? rubroPadre.nombre : rubroPadre.Nombre) : 'Categoría';
 
                     contenedorVistas.innerHTML += '<div id="seccion-cat-' + idCat + '" class="seccion-vista"><div class="seccion-header-flex">' + iconoInline + '<h2 class="seccion-titulo">' + format.texto + '</h2></div><p class="seccion-subtitulo">' + subtitulo + '</p><div id="lista-cat-' + idCat + '"></div></div>';
                 });
 
-                // 4. CARGAR ACORDEÓN (Rubros -> Categorías)
                 rubros.forEach(function (rubro) {
                     const idRubro = rubro.codRubro !== undefined ? rubro.codRubro : rubro.CodRubro;
                     const nombreRubro = rubro.nombre !== undefined ? rubro.nombre : rubro.Nombre;
@@ -1053,8 +1397,7 @@
                         '</div>';
                 });
 
-                // 5. Cargar los Productos
-                const resArt = await fetch(baseURL + '/Articulos');
+                const resArt = await fetch(baseURL + '/Articulos', fetchOptions);
                 if (resArt.ok) {
                     const articulos = await resArt.json();
                     articulos.forEach(function (item) {
@@ -1062,21 +1405,22 @@
                         const precio = item.costo || item.Costo || 0;
                         const desc = item.descripcion || item.Descripcion || "Producto";
                         const catId = item.categoriaId !== undefined ? item.categoriaId : item.CategoriaId;
+                        const subtituloDesc = "Sabor original";
 
-                        window.todosLosProductos.push({ nombre: desc, desc: "Sabor original", precio: precio, img: img, esPromo: false });
+                        window.todosLosProductos.push({ nombre: desc, desc: subtituloDesc, precio: precio, img: img, esPromo: false });
 
                         const div = document.getElementById('lista-cat-' + catId);
                         if (div) {
                             const descLimpio = desc.replace(/'/g, "\\'");
-                            div.innerHTML += '<div class="producto">' +
+                            div.innerHTML += '<div class="producto" onclick="abrirModalProducto(\'' + descLimpio + '\')">' +
                                 '<div class="producto-info">' +
                                 '<h3>' + desc + '</h3>' +
-                                '<p class="desc">Sabor original</p>' +
+                                '<p class="desc">' + subtituloDesc + '</p>' +
                                 '<div class="precio">$' + precio + '</div>' +
                                 '</div>' +
                                 '<div class="producto-img-container">' +
                                 '<img src="' + img + '">' +
-                                '<button class="btn-add" onclick="agregarAlCarrito(\'' + descLimpio + '\', ' + precio + ', \'' + img + '\')">+</button>' +
+                                '<button class="btn-add" onclick="event.stopPropagation(); agregarAlCarrito(\'' + descLimpio + '\', ' + precio + ', \'' + img + '\')">+</button>' +
                                 '</div>' +
                                 '</div>';
                         }
@@ -1091,6 +1435,7 @@
             } else {
                 carrito[nombre].cantidad++;
             }
+            guardarCarritoEnStorage();
             actualizarUIFlotante();
             renderizarItemsModal();
         }
@@ -1102,12 +1447,14 @@
                     delete carrito[nombre];
                 }
             }
+            guardarCarritoEnStorage();
             actualizarUIFlotante();
             renderizarItemsModal();
         }
 
         function eliminarDelCarrito(nombre) {
             delete carrito[nombre];
+            guardarCarritoEnStorage();
             actualizarUIFlotante();
             renderizarItemsModal();
             if (Object.keys(carrito).length === 0) {
@@ -1176,17 +1523,24 @@
 
         function cerrarModalCarrito() {
             document.getElementById('modal-cart').style.display = 'none';
+            localStorage.removeItem('modalPasoLaDolce');
         }
 
         function irPaso(paso) {
             const steps = document.querySelectorAll('#modal-cart .modal-step');
             for (let i = 0; i < steps.length; i++) { steps[i].classList.remove('activa'); }
 
-            const btnAccion = document.getElementById('btn-accion-modal'), titulo = document.getElementById('modal-titulo'), btnVolver = document.getElementById('btn-volver');
+            const btnAccion = document.getElementById('btn-accion-modal'),
+                titulo = document.getElementById('modal-titulo'),
+                btnVolver = document.getElementById('btn-volver'),
+                btnSeguir = document.getElementById('btn-seguir-comprando');
+
+            localStorage.setItem('modalPasoLaDolce', paso);
 
             if (paso === 1) {
                 document.getElementById('paso-1').classList.add('activa');
                 btnVolver.style.display = 'none';
+                btnSeguir.style.display = 'flex';
                 titulo.innerText = 'Tu Carrito';
                 btnAccion.innerText = 'Continuar';
                 btnAccion.setAttribute('onclick', 'irPaso(2)');
@@ -1194,6 +1548,7 @@
                 if (Object.keys(carrito).length === 0) { cerrarModalCarrito(); return; }
                 document.getElementById('paso-2').classList.add('activa');
                 btnVolver.style.display = 'block';
+                btnSeguir.style.display = 'none';
                 titulo.innerText = 'Tus Datos de Envío';
                 btnAccion.innerText = 'Enviar pedido por WhatsApp';
                 btnAccion.setAttribute('onclick', 'enviarPedidoWhatsApp()');
@@ -1201,7 +1556,9 @@
         }
 
         function verificarMetodoPago() {
-            document.getElementById('caja-efectivo').style.display = (document.getElementById('cli-pago').value === 'Efectivo') ? 'block' : 'none';
+            const metodo = document.getElementById('cli-pago').value;
+            document.getElementById('caja-efectivo').style.display = (metodo === 'Efectivo') ? 'block' : 'none';
+            document.getElementById('caja-transferencia').style.display = (metodo === 'Mercado Pago / Transferencia') ? 'block' : 'none';
         }
 
         async function enviarPedidoWhatsApp() {
@@ -1221,15 +1578,19 @@
                 if (parseFloat(abonaCon) < t.totalGeneral) return alert('El monto a abonar ($' + abonaCon + ') debe ser mayor o igual al total de tu compra ($' + t.totalGeneral + ').');
             }
 
-            // 1. Armamos solo los datos crudos para mandarlos a la base de datos
             const datosClienteBD = nombre + ' (' + direccion + ') | Tel: ' + telefono;
-            let idRealPedido = "";
+            let idRealPedido = pedidoEnEdicion;
 
-            // 2. PRIMERO mandamos a guardar a C# y esperamos la respuesta con el ID
+            const urlFetch = pedidoEnEdicion ? `${baseURL}/Pedidos/${pedidoEnEdicion}` : `${baseURL}/Pedidos/Nuevo`;
+            const metodoFetch = pedidoEnEdicion ? 'PUT' : 'POST';
+
             try {
-                const res = await fetch(baseURL + '/Pedidos/Nuevo', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                const res = await fetch(urlFetch, {
+                    method: metodoFetch,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
                     body: JSON.stringify({
                         cliente: datosClienteBD,
                         total: t.totalGeneral
@@ -1238,10 +1599,10 @@
 
                 if (res.ok) {
                     const data = await res.json();
-                    idRealPedido = data.id; // ¡Acá atrapamos el ID real de SQL!
+                    idRealPedido = data.id;
                 } else {
-                    alert("Hubo un error al registrar el pedido.");
-                    return; // Cortamos la ejecución si falla
+                    alert("Hubo un error al comunicar con el servidor.");
+                    return;
                 }
             } catch (error) {
                 console.error("Error de conexión con el servidor", error);
@@ -1249,18 +1610,46 @@
                 return;
             }
 
-            // 3. SEGUNDO, ahora que tenemos el ID, armamos el mensaje de WhatsApp
-            let texto = '¡Hola *La Dolce*! Quisiera hacer el siguiente pedido:\n\n*NÚMERO DE PEDIDO: #' + idRealPedido + '*\n\n*MI PEDIDO:*\n';
+            const carritoLiviano = {};
+            for (let p in carrito) {
+                carritoLiviano[p] = carrito[p].cantidad;
+            }
+
+            const urlActual = window.location.origin + window.location.pathname;
+            const datosRecuperacion = encodeURIComponent(JSON.stringify(carritoLiviano));
+            const linkRecuperar = urlActual + '?recover=' + datosRecuperacion + '&id=' + idRealPedido;
+
+            let texto = '';
+
+            if (pedidoEnEdicion) {
+                texto = '¡Hola *La Dolce*! Necesito *MODIFICAR* mi pedido:\n\n*NÚMERO DE PEDIDO: #' + idRealPedido + '*\n\n*NUEVO DETALLE:*\n';
+            } else {
+                texto = '¡Hola *La Dolce*! Quisiera hacer el siguiente pedido:\n\n*NÚMERO DE PEDIDO: #' + idRealPedido + '*\n\n*MI PEDIDO:*\n';
+            }
+
             for (let p in carrito) {
                 texto += '- ' + carrito[p].cantidad + 'x ' + p + ' ($' + (carrito[p].precio * carrito[p].cantidad) + ')\n';
             }
 
             texto += 'Envío: $' + costoEnvioFijo + '\n*Total a pagar: $' + t.totalGeneral + '*\n\n*MIS DATOS:*\nNombre: ' + nombre + '\nDirección: ' + direccion + '\nTeléfono: ' + telefono + '\n';
-            texto += pago === 'Efectivo' ? 'Pago: Efectivo (Abona con $' + abonaCon + ')\n' : 'Pago: ' + pago + '\n';
 
-            // 4. TERCERO, abrimos WhatsApp
+            if (pago === 'Efectivo') {
+                texto += 'Pago: Efectivo (Abona con $' + abonaCon + ')\n';
+            } else {
+                texto += 'Pago: Transferencia\n';
+                texto += '⏳ *El pedido será confirmado cuando envíes el comprobante por este medio.*\n';
+            }
+
+            texto += '\n\n🔄 *¿Te olvidaste de agregar algo o querés cambiar tu pedido?* Entrá a este link:\n' + linkRecuperar;
+
             const numeroDestino = numeroWhatsAppDinamico !== "" ? numeroWhatsAppDinamico : "5491100000000";
             window.open('https://wa.me/' + numeroDestino + '?text=' + encodeURIComponent(texto), '_blank');
+
+            localStorage.removeItem('carritoLaDolce');
+            localStorage.removeItem('datosClienteLaDolce');
+            localStorage.removeItem('modalPasoLaDolce');
+            pedidoEnEdicion = null;
+
             window.location.reload();
         }
 
