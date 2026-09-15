@@ -24,10 +24,8 @@ namespace delivery.Controllers
         [HttpGet]
         public async Task<ActionResult<List<ArticuloGetDTO>>> Get()
         {
-            // Traemos los datos crudos
             var articulos = await _repository.GetAllAsync();
 
-            // Los traducimos al DTO seguro (incluyendo la imagen)
             var articulosDto = articulos.Select(a => new ArticuloGetDTO
             {
                 CodArticulo = a.CodArticulo,
@@ -35,7 +33,14 @@ namespace delivery.Controllers
                 Costo = a.Costo,
                 Stock = a.Stock,
                 UrlImagen = a.UrlImagen,
-                CategoriaId = a.CategoriaId
+                CategoriaId = a.CategoriaId,
+
+                // --- LO NUEVO ---
+                MaxGustos = a.MaxGustos,
+                // Si ImagenesExtras es null, devolvemos una lista vacía, sino extraemos las URLs
+                ImagenesExtras = a.ImagenesExtras != null
+                    ? a.ImagenesExtras.Select(img => img.Url).ToList()
+                    : new List<string>()
             }).ToList();
 
             return Ok(articulosDto);
@@ -63,7 +68,14 @@ namespace delivery.Controllers
                 Costo = articuloDto.Costo,
                 Stock = articuloDto.Stock,
                 UrlImagen = articuloDto.UrlImagen,
-                CategoriaId = articuloDto.CategoriaId
+                CategoriaId = articuloDto.CategoriaId,
+
+                // --- LO NUEVO ---
+                MaxGustos = articuloDto.MaxGustos,
+                // Convertimos la lista de strings (URLs) en la entidad ImagenArticulo
+                ImagenesExtras = articuloDto.ImagenesExtras != null
+                    ? articuloDto.ImagenesExtras.Select(url => new ImagenArticulo { Url = url }).ToList()
+                    : new List<ImagenArticulo>()
             };
 
             await _repository.SaveAsync(nuevoArticulo);
@@ -74,7 +86,7 @@ namespace delivery.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult> EditarArticulo(int id, ArticuloCreateDTO articuloDto)
         {
-            // Buscamos el artículo original
+            // Buscamos el artículo original (el repositorio ya trae las ImagenesExtras gracias al Include)
             var articuloExistente = await _repository.GetByIdAsync(id);
             if (articuloExistente == null)
             {
@@ -87,14 +99,29 @@ namespace delivery.Controllers
             articuloExistente.Stock = articuloDto.Stock;
             articuloExistente.CategoriaId = articuloDto.CategoriaId;
 
-            // Solo actualizamos la foto si subiste una nueva en el administrador
+            // --- 1. LO NUEVO: Actualizamos el límite de gustos ---
+            articuloExistente.MaxGustos = articuloDto.MaxGustos;
+
+            // Solo actualizamos la foto de portada si subiste una nueva en el administrador
             if (!string.IsNullOrEmpty(articuloDto.UrlImagen))
             {
                 articuloExistente.UrlImagen = articuloDto.UrlImagen;
             }
 
-            // Nota: Asumo que en tu repositorio el "SaveAsync" sirve tanto para crear como para guardar cambios. 
-            // Si tenés un método "UpdateAsync" creado en tu repositorio, cambialo acá abajo:
+            // --- 2. LO NUEVO: Actualizamos la galería de fotos extra ---
+            if (articuloDto.ImagenesExtras != null)
+            {
+                // Limpiamos las fotos viejas de la memoria (EF Core las borrará de SQL Server al guardar)
+                articuloExistente.ImagenesExtras.Clear();
+
+                // Insertamos las nuevas URLs que llegaron desde el frontend
+                foreach (var url in articuloDto.ImagenesExtras)
+                {
+                    articuloExistente.ImagenesExtras.Add(new ImagenArticulo { Url = url });
+                }
+            }
+
+            // Guardamos los cambios en la base de datos
             await _repository.SaveAsync(articuloExistente);
 
             return Ok();

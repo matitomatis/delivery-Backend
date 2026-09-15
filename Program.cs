@@ -1,3 +1,4 @@
+using delivery.Data.Repositories;
 using delivery.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -8,8 +9,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        b => b.MigrationsAssembly("delivery.Data")
+        builder.Configuration.GetConnectionString("DefaultConnection"), // Usá el nombre de tu conexión
+        b => b.MigrationsAssembly("delivery") // <-- ESTA ES LA LÍNEA MÁGICA
     )
 );
 builder.Services.AddScoped<IArticuloRepository, ArticuloRepository>();
@@ -18,6 +19,8 @@ builder.Services.AddScoped<IPromoRepository, PromoRepository>();
 builder.Services.AddScoped<IFormaPagoRepository, FormaPagoRepository>();
 builder.Services.AddScoped<ITipoEnvioRepository, TipoEnvioRepository>();
 builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
+builder.Services.AddScoped<IArticuloRepository, ArticuloRepository>();
+builder.Services.AddScoped<IGustoRepository, GustoRepository>();
 // Add services to the container.
 
 builder.Services.AddControllers();

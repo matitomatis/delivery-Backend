@@ -467,6 +467,33 @@
                 color: var(--primary);
             }
 
+        /* BUSCADOR TABLA VIP */
+        .buscador-tabla {
+            display: flex;
+            align-items: center;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 15px;
+            margin-top: 30px;
+            margin-bottom: -10px;
+        }
+
+            .buscador-tabla i {
+                color: var(--text-muted);
+                margin-right: 10px;
+                font-size: 1.1rem;
+            }
+
+            .buscador-tabla input {
+                border: none;
+                background: transparent;
+                padding: 0;
+                outline: none;
+                font-size: 0.95rem;
+                width: 100%;
+            }
+
         /* RESPONSIVE */
         @media (max-width: 1024px) {
             .dashboard-container {
@@ -478,7 +505,6 @@
                 flex-direction: row;
                 align-items: center;
                 overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
                 padding: 10px 15px;
                 white-space: nowrap;
             }
@@ -552,6 +578,7 @@
 
             <div class="menu-label">Gestión</div>
             <a class="nav-item" id="nav-productos" onclick="cambiarVista('vista-productos', this)"><i class="fas fa-box"></i> Productos</a>
+            <a class="nav-item" id="nav-sabores" onclick="cambiarVista('vista-sabores', this)"><i class="fas fa-ice-cream"></i> Sabores</a>
             <a class="nav-item" id="nav-promos" onclick="cambiarVista('vista-promos', this)"><i class="fas fa-star"></i> Promociones</a>
             <a class="nav-item" id="nav-categorias" onclick="cambiarVista('vista-categorias', this)"><i class="fas fa-tags"></i> Categorías</a>
             <a class="nav-item" id="nav-rubros" onclick="cambiarVista('vista-rubros', this)"><i class="fas fa-layer-group"></i> Rubros</a>
@@ -594,7 +621,6 @@
                         </div>
                     </div>
 
-                    <!-- TARJETA DE ESTADÍSTICAS -->
                     <div class="card">
                         <div class="card-header-flex">
                             <h3><i class="fas fa-chart-bar"></i> Facturación Anual</h3>
@@ -607,7 +633,7 @@
 
                     <div class="card">
                         <h3><i class="fas fa-truck"></i> Costo de Envío Fijo</h3>
-                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: -10px; margin-bottom: 15px;">Este valor se sumará automáticamente al subtotal en el carrito del cliente.</p>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: -10px; margin-bottom: 15px;">Este valor se sumará al carrito del cliente.</p>
                         <div class="input-rapido">
                             <input type="number" id="input-envio" placeholder="Ej: 1500">
                             <button class="btn-guardar" onclick="guardarEnvio()">Actualizar</button>
@@ -616,25 +642,15 @@
                     </div>
                 </div>
 
-                <!-- VISTA: PEDIDOS PENDIENTES -->
+                <!-- VISTA: PEDIDOS -->
                 <div id="vista-pedidos" class="vista-seccion">
                     <div class="header-seccion"><h1>Bandeja de Entrada</h1></div>
                     <div class="card">
                         <h3><i class="fas fa-clock"></i> Pedidos Pendientes</h3>
-                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: -10px; margin-bottom: 15px;">Al confirmar un pedido, los botones desaparecerán y se sumará el monto al gráfico de facturación.</p>
-
                         <div class="tabla-container">
                             <table>
-                                <thead>
-                                    <tr>
-                                        <th>Fecha</th>
-                                        <th>Cliente (Info)</th>
-                                        <th>Total</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tabla-pedidos">
-                                </tbody>
+                                <thead><tr><th>Fecha</th><th>Cliente (Info)</th><th>Total</th><th>Acciones</th></tr></thead>
+                                <tbody id="tabla-pedidos"></tbody>
                             </table>
                             <p id="mensaje-sin-pedidos" style="text-align: center; color: var(--text-muted); padding: 20px; display: none;">No hay pedidos pendientes.</p>
                         </div>
@@ -652,15 +668,65 @@
                             <label>Categoría:</label>
                             <select id="categoriaArticulo"><option value="">Seleccioná...</option></select>
                         </div>
-                        <div class="form-group"><label>Foto (Opcional si editás):</label><input type="file" id="imgArticulo" accept="image/*"></div>
+
+                        <!-- LÍMITE DE GUSTOS (OCULTO POR DEFECTO) -->
+                        <div class="form-group" id="contenedor-limite-gustos" style="display: none; background: #fff5f5; padding: 15px; border-radius: 8px; border: 1px solid #fecaca;">
+                            <label style="color: var(--primary);"><i class="fas fa-ice-cream"></i> Límite de Sabores permitidos:</label>
+                            <input type="number" id="maxGustos" value="0" min="0">
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px; margin-bottom: 0;">Los clientes elegirán de la lista de Sabores cargados.</p>
+                        </div>
+
+                        <!-- FOTOS EXTRA PARA REGALERÍA -->
+                        <div class="form-group">
+                            <label>Fotos Adicionales (Opcional - Para regalería/postres):</label>
+                            <div id="contenedor-imagenes-extra"></div>
+                            <button type="button" class="btn-action-outline" style="width: auto; padding: 6px 12px; margin-top: 10px;" onclick="agregarInputImagen()">+ Agregar foto extra</button>
+                        </div>
+
+                        <div class="form-group"><label>Foto Principal (Opcional si editás):</label><input type="file" id="imgArticulo" accept="image/*"></div>
 
                         <button class="btn-guardar" id="btn-submit-articulo" onclick="guardarArticulo()">Guardar Producto</button>
                         <button class="btn-guardar btn-cancelar" id="btn-cancelar-articulo" onclick="cancelarEdicionArticulo()">Cancelar Edición</button>
-
                         <p id="mensajeArticulo" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
 
+                        <!-- NUEVO: BUSCADOR DE PRODUCTOS VIP -->
+                        <div class="buscador-tabla">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="inputBuscarProducto" placeholder="Buscar producto por nombre..." onkeyup="filtrarTablaProductos()">
+                        </div>
+
                         <div class="tabla-container">
-                            <table><thead><tr><th>Descripción</th><th>Precio</th><th>Acción</th></tr></thead><tbody id="tabla-articulos"></tbody></table>
+                            <table id="tabla-html-productos">
+                                <thead><tr><th>Descripción</th><th>Precio</th><th>Acción</th></tr></thead>
+                                <tbody id="tabla-articulos"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VISTA: SABORES DE HELADO -->
+                <div id="vista-sabores" class="vista-seccion">
+                    <div class="header-seccion"><h1>Gestión de Sabores</h1></div>
+                    <div class="card">
+                        <h3 id="titulo-form-sabor"><i class="fas fa-ice-cream"></i> Nuevo Sabor</h3>
+                        <div class="form-group">
+                            <label>Nombre del Sabor:</label>
+                            <input type="text" id="nombreSabor" placeholder="Ej: Dulce de Leche Granizado">
+                        </div>
+                        <div class="form-group">
+                            <label>Estado (Stock):</label>
+                            <select id="stockSabor">
+                                <option value="true">✅ Disponible (En Stock)</option>
+                                <option value="false">❌ Agotado (Oculto/Tachado)</option>
+                            </select>
+                        </div>
+
+                        <button class="btn-guardar" id="btn-submit-sabor" onclick="guardarSabor()" style="max-width: 200px;">Guardar Sabor</button>
+                        <button class="btn-guardar btn-cancelar" id="btn-cancelar-sabor" onclick="cancelarEdicionSabor()" style="max-width: 200px;">Cancelar</button>
+                        <p id="mensajeSabor" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
+
+                        <div class="tabla-container">
+                            <table><thead><tr><th>Nombre del Sabor</th><th>Estado</th><th>Acción</th></tr></thead><tbody id="tabla-sabores"></tbody></table>
                         </div>
                     </div>
                 </div>
@@ -680,7 +746,6 @@
 
                         <button class="btn-guardar" id="btn-submit-promo" onclick="guardarPromocion()">Guardar Promoción</button>
                         <button class="btn-guardar btn-cancelar" id="btn-cancelar-promo" onclick="cancelarEdicionPromo()">Cancelar Edición</button>
-
                         <p id="mensajePromo" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
 
                         <div class="tabla-container">
@@ -695,12 +760,9 @@
                     <div class="card">
                         <h3 id="titulo-form-rubro"><i class="fas fa-layer-group"></i> Nuevo Rubro</h3>
                         <div class="form-group"><label>Nombre (Ej: Regalería):</label><input type="text" id="nombreRubro"></div>
-
                         <button class="btn-guardar" id="btn-submit-rubro" onclick="guardarRubro()" style="max-width: 200px;">Guardar</button>
                         <button class="btn-guardar btn-cancelar" id="btn-cancelar-rubro" onclick="cancelarEdicionRubro()" style="max-width: 200px;">Cancelar</button>
-
                         <p id="mensajeRubro" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
-
                         <div class="tabla-container">
                             <table><thead><tr><th>Nombre</th><th>Acción</th></tr></thead><tbody id="tabla-rubros"></tbody></table>
                         </div>
@@ -713,17 +775,13 @@
                     <div class="card">
                         <h3 id="titulo-form-categoria"><i class="fas fa-tag"></i> Nueva Categoría</h3>
                         <div class="form-group"><label>Nombre de la categoría (Ej: ☕ Tazas):</label><input type="text" id="nombreCategoria"></div>
-
                         <div class="form-group">
                             <label>Pertenece al Rubro:</label>
                             <select id="rubroCategoria"><option value="">Seleccioná...</option></select>
                         </div>
-
                         <button class="btn-guardar" id="btn-submit-categoria" onclick="guardarCategoria()" style="max-width: 200px;">Guardar Categoría</button>
                         <button class="btn-guardar btn-cancelar" id="btn-cancelar-categoria" onclick="cancelarEdicionCategoria()" style="max-width: 200px;">Cancelar</button>
-
                         <p id="mensajeCategoria" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
-
                         <div class="tabla-container">
                             <table><thead><tr><th>Nombre</th><th>Acción</th></tr></thead><tbody id="tabla-categorias"></tbody></table>
                         </div>
@@ -740,7 +798,6 @@
                         <div class="form-group"><label>Color de Fondo:</label><input type="color" id="colorBanner" value="#cc0000" style="height:50px; padding:2px;"></div>
                         <button class="btn-guardar" onclick="guardarBanner()" style="max-width: 200px;">Guardar Banner</button>
                         <p id="mensajeBanner" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
-
                         <div class="tabla-container">
                             <table><thead><tr><th>Textos</th><th>Color Base</th><th>Acción</th></tr></thead><tbody id="tabla-banners"></tbody></table>
                         </div>
@@ -756,36 +813,13 @@
                 <button class="btn-action-outline" onclick="cambiarVista('vista-pedidos', document.getElementById('nav-pedidos'))"><i class="fas fa-clock"></i> Ver Pedidos</button>
                 <button class="btn-action-outline" onclick="cambiarVista('vista-productos', document.getElementById('nav-productos'))"><i class="fas fa-plus"></i> Cargar Producto</button>
             </div>
-
             <div class="info-panel">
                 <h3><i class="fas fa-store" style="color: var(--primary);"></i> Datos del Local</h3>
-
-                <div class="form-group">
-                    <label style="font-size: 0.8rem;"><i class="fab fa-whatsapp" style="color:#25D366;"></i> WhatsApp:</label>
-                    <input type="text" id="config-wpp" placeholder="Ej: 5491122334455" style="padding: 8px;">
-                </div>
-
-                <div class="form-group">
-                    <label style="font-size: 0.8rem;"><i class="fab fa-instagram" style="color:#E1306C;"></i> Instagram (URL):</label>
-                    <input type="text" id="config-ig" placeholder="https://instagram.com/..." style="padding: 8px;">
-                </div>
-
-                <div class="form-group">
-                    <label style="font-size: 0.8rem;"><i class="fab fa-facebook" style="color:#1877F2;"></i> Facebook (URL):</label>
-                    <input type="text" id="config-fb" placeholder="https://facebook.com/..." style="padding: 8px;">
-                </div>
-
-                <div class="form-group">
-                    <label style="font-size: 0.8rem;"><i class="fas fa-map-marked-alt text-muted"></i> Maps (URL):</label>
-                    <input type="text" id="config-maps" placeholder="https://maps.google.com/..." style="padding: 8px;">
-                </div>
-
-                <!-- NUEVO: CAJA PARA EL ALIAS -->
-                <div class="form-group">
-                    <label style="font-size: 0.8rem;"><i class="fas fa-university text-muted"></i> Alias Transferencia:</label>
-                    <input type="text" id="config-alias" placeholder="Ej: LADOLCE.DELIVERY" style="padding: 8px;">
-                </div>
-
+                <div class="form-group"><label style="font-size: 0.8rem;"><i class="fab fa-whatsapp" style="color:#25D366;"></i> WhatsApp:</label><input type="text" id="config-wpp" placeholder="Ej: 5491122334455" style="padding: 8px;"></div>
+                <div class="form-group"><label style="font-size: 0.8rem;"><i class="fab fa-instagram" style="color:#E1306C;"></i> Instagram (URL):</label><input type="text" id="config-ig" placeholder="https://instagram.com/..." style="padding: 8px;"></div>
+                <div class="form-group"><label style="font-size: 0.8rem;"><i class="fab fa-facebook" style="color:#1877F2;"></i> Facebook (URL):</label><input type="text" id="config-fb" placeholder="https://facebook.com/..." style="padding: 8px;"></div>
+                <div class="form-group"><label style="font-size: 0.8rem;"><i class="fas fa-map-marked-alt text-muted"></i> Maps (URL):</label><input type="text" id="config-maps" placeholder="https://maps.google.com/..." style="padding: 8px;"></div>
+                <div class="form-group"><label style="font-size: 0.8rem;"><i class="fas fa-university text-muted"></i> Alias Transferencia:</label><input type="text" id="config-alias" placeholder="Ej: LADOLCE.DELIVERY" style="padding: 8px;"></div>
                 <button class="btn-guardar" onclick="guardarConfigLocal()" style="padding: 10px;">Actualizar Datos</button>
                 <p id="mensaje-config" style="font-weight:bold; margin-top:10px; min-height: 20px; font-size: 0.85rem; text-align:center;"></p>
             </div>
@@ -796,11 +830,11 @@
         const baseUrl = '/api';
         let chartInstancia = null;
 
-        // Variables de estado para saber si estamos editando
         let idRubroEditando = 0;
         let idCategoriaEditando = 0;
         let idArticuloEditando = 0;
         let idPromoEditando = 0;
+        let idSaborEditando = 0;
 
         function cambiarVista(idVista, elementoMenu) {
             document.querySelectorAll('.vista-seccion').forEach(vista => vista.classList.remove('activa'));
@@ -818,268 +852,63 @@
             });
         }
 
-        // --- LÓGICA DE PEDIDOS ---
-        async function cargarPedidos() {
-            try {
-                const res = await fetch(`${baseUrl}/Pedidos/Pendientes`);
-                if (!res.ok) throw new Error("Error de red");
-                const data = await res.json();
-                const tbody = document.getElementById('tabla-pedidos');
-                const msjSinPedidos = document.getElementById('mensaje-sin-pedidos');
-                tbody.innerHTML = '';
-                if (data.length === 0) {
-                    msjSinPedidos.style.display = 'block';
-                } else {
-                    msjSinPedidos.style.display = 'none';
-                    data.forEach(item => {
-                        tbody.innerHTML += `
-                                <tr>
-                                    <td>${item.fecha}</td>
-                                    <td><strong>${item.cliente}</strong></td>
-                                    <td style="font-weight: bold; color: var(--text-main);">$${item.total}</td>
-                                    <td id="acciones-pedido-${item.id}">
-                                        <button class="btn-guardar" style="width: auto; padding: 6px 12px; font-size: 0.85rem; margin-right: 5px; margin-bottom: 5px;" onclick="cambiarEstadoPedido(${item.id}, 'Completado')"><i class="fas fa-check"></i></button>
-                                        <button class="btn-borrar" style="margin-bottom: 5px;" onclick="cambiarEstadoPedido(${item.id}, 'Cancelado')"><i class="fas fa-times"></i></button>
-                                    </td>
-                                </tr>`;
-                    });
+        // --- LÓGICA DE BÚSQUEDA EN TIEMPO REAL ---
+        function filtrarTablaProductos() {
+            const textoBuscado = document.getElementById('inputBuscarProducto').value.toLowerCase();
+            const filas = document.querySelectorAll('#tabla-html-productos tbody tr');
+
+            filas.forEach(fila => {
+                const celdaNombre = fila.querySelector('td'); // La primera columna es "Descripción"
+                if (celdaNombre) {
+                    const nombreProducto = celdaNombre.textContent.toLowerCase();
+                    if (nombreProducto.includes(textoBuscado)) {
+                        fila.style.display = '';
+                    } else {
+                        fila.style.display = 'none';
+                    }
                 }
-            } catch (e) { }
+            });
         }
 
-        async function cambiarEstadoPedido(idPedido, nuevoEstado) {
-            if (confirm(`¿Marcar este pedido como ${nuevoEstado}?`)) {
-                try {
-                    await fetch(`${baseUrl}/Pedidos/${idPedido}/Estado`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(nuevoEstado) });
-                    cargarEstadisticas();
-                    cargarPedidos();
-                } catch (e) { }
+        document.getElementById('categoriaArticulo').addEventListener('change', function () {
+            const indexSeleccionado = this.selectedIndex;
+            if (indexSeleccionado === -1) return;
+
+            const categoriaTexto = this.options[indexSeleccionado].text.toLowerCase();
+            const divGustos = document.getElementById('contenedor-limite-gustos');
+            const inputGustos = document.getElementById('maxGustos');
+
+            if (categoriaTexto.includes('helad') || categoriaTexto.includes('pote') || categoriaTexto.includes('kilo')) {
+                divGustos.style.display = 'block';
+            } else {
+                divGustos.style.display = 'none';
+                inputGustos.value = 0;
             }
-        }
+        });
 
-        // --- LÓGICA DE ESTADÍSTICAS Y CONFIGURACIÓN ---
-        async function cargarEstadisticas() {
-            const select = document.getElementById('selectYear');
-            if (select.options.length === 0) {
-                const anioActual = new Date().getFullYear();
-                for (let i = anioActual; i >= 2026; i--) {
-                    const option = document.createElement('option');
-                    option.value = i; option.text = i; select.appendChild(option);
-                }
+        function agregarInputImagen(url = '') {
+            const container = document.getElementById('contenedor-imagenes-extra');
+            const div = document.createElement('div');
+            div.className = 'input-rapido';
+            div.style.marginBottom = '10px';
+            div.style.maxWidth = '100%';
+            div.style.alignItems = 'center';
+
+            if (url !== '') {
+                div.innerHTML = `
+                                <img src="${url}" style="height: 40px; width: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #ccc;">
+                                <input type="hidden" class="imagen-extra-existente" value="${url}">
+                                <button class="btn-borrar" type="button" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
+                            `;
+            } else {
+                div.innerHTML = `
+                                <input type="file" class="form-control imagen-extra-file" accept="image/*">
+                                <button class="btn-borrar" type="button" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
+                            `;
             }
-            const anioSeleccionado = select.value;
-            try {
-                const res = await fetch(`${baseUrl}/Estadisticas/Ventas?anio=${anioSeleccionado}`);
-                if (!res.ok) throw new Error("Error");
-                const data = await res.json();
-                const nombresMeses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-                const labels = data.map(d => nombresMeses[d.mes - 1] || d.mes);
-                const totales = data.map(d => d.total);
-                const ctx = document.getElementById('graficoVentas').getContext('2d');
-                if (chartInstancia) { chartInstancia.destroy(); }
-                chartInstancia = new Chart(ctx, {
-                    type: 'bar', data: { labels: labels, datasets: [{ label: `Facturación ${anioSeleccionado} ($)`, data: totales, backgroundColor: '#cc0000', borderRadius: 6 }] },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-                });
-            } catch (e) { }
+            container.appendChild(div);
         }
 
-        async function cargarConfigLocal() {
-            try {
-                const res = await fetch(`${baseUrl}/Configuracion`);
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.whatsApp) document.getElementById('config-wpp').value = data.whatsApp;
-                    if (data.instagram) document.getElementById('config-ig').value = data.instagram;
-                    if (data.facebook) document.getElementById('config-fb').value = data.facebook;
-                    if (data.googleMaps) document.getElementById('config-maps').value = data.googleMaps;
-                    if (data.alias) document.getElementById('config-alias').value = data.alias; // <-- Agregado
-                }
-            } catch (e) { }
-        }
-
-        async function guardarConfigLocal() {
-            const payload = {
-                whatsApp: document.getElementById('config-wpp').value,
-                instagram: document.getElementById('config-ig').value,
-                facebook: document.getElementById('config-fb').value,
-                googleMaps: document.getElementById('config-maps').value,
-                alias: document.getElementById('config-alias').value // <-- Agregado
-            };
-            const msj = document.getElementById('mensaje-config');
-            try {
-                const res = await fetch(`${baseUrl}/Configuracion`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (res.ok) { msj.innerText = "✅ Datos actualizados."; msj.style.color = "var(--success)"; }
-            } catch (e) { msj.innerText = "❌ Error al guardar"; msj.style.color = "var(--danger)"; }
-            setTimeout(() => msj.innerText = "", 3000);
-        }
-
-        async function cargarEnvio() {
-            try {
-                const res = await fetch(`${baseUrl}/TarifaEnvio`);
-                document.getElementById('input-envio').value = await res.json();
-            } catch (e) { }
-        }
-
-        async function guardarEnvio() {
-            const costo = document.getElementById('input-envio').value;
-            const msj = document.getElementById('mensaje-envio');
-            if (!costo) return;
-            try {
-                const res = await fetch(`${baseUrl}/TarifaEnvio`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: costo });
-                if (res.ok) { msj.innerText = "✅ Tarifa actualizada."; msj.style.color = "var(--success)"; setTimeout(() => msj.innerText = "", 3000); }
-            } catch (e) { }
-        }
-
-        // --- LÓGICA DE RUBROS ---
-        async function cargarRubros() {
-            try {
-                const res = await fetch(`${baseUrl}/Rubros`);
-                const data = await res.json();
-                const tbody = document.getElementById('tabla-rubros');
-                const selectRubroCategoria = document.getElementById('rubroCategoria');
-
-                tbody.innerHTML = '';
-                selectRubroCategoria.innerHTML = '<option value="">Seleccioná...</option>';
-
-                data.forEach(item => {
-                    const id = item.codRubro !== undefined ? item.codRubro : item.CodRubro;
-                    const nombre = item.nombre !== undefined ? item.nombre : item.Nombre;
-                    const nombreSeguro = nombre.replace(/'/g, "\\'");
-
-                    tbody.innerHTML += `<tr>
-                            <td><strong>${nombre}</strong></td>
-                            <td>
-                                <button class="btn-editar" onclick="prepararEdicionRubro(${id}, '${nombreSeguro}')"><i class="fas fa-pen"></i></button>
-                                <button class="btn-borrar" onclick="eliminarRubro(${id})"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>`;
-                    selectRubroCategoria.innerHTML += `<option value="${id}">${nombre}</option>`;
-                });
-            } catch (e) { }
-        }
-
-        function prepararEdicionRubro(id, nombre) {
-            idRubroEditando = id;
-            document.getElementById('nombreRubro').value = nombre;
-            document.getElementById('titulo-form-rubro').innerHTML = '<i class="fas fa-pen"></i> Editando Rubro';
-            document.getElementById('btn-submit-rubro').innerText = 'Actualizar Rubro';
-            document.getElementById('btn-cancelar-rubro').style.display = 'block';
-            window.scrollTo(0, 0);
-        }
-
-        function cancelarEdicionRubro() {
-            idRubroEditando = 0;
-            document.getElementById('nombreRubro').value = '';
-            document.getElementById('titulo-form-rubro').innerHTML = '<i class="fas fa-layer-group"></i> Nuevo Rubro';
-            document.getElementById('btn-submit-rubro').innerText = 'Guardar';
-            document.getElementById('btn-cancelar-rubro').style.display = 'none';
-        }
-
-        async function guardarRubro() {
-            const nombre = document.getElementById('nombreRubro').value;
-            const msj = document.getElementById('mensajeRubro');
-            if (!nombre) return;
-
-            const payload = { codRubro: idRubroEditando, nombre: nombre };
-            const url = idRubroEditando > 0 ? `${baseUrl}/Rubros/${idRubroEditando}` : `${baseUrl}/Rubros`;
-            const metodo = idRubroEditando > 0 ? 'PUT' : 'POST';
-
-            try {
-                const res = await fetch(url, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (res.ok) {
-                    msj.innerText = "✅ Guardado con éxito"; msj.style.color = "var(--success)";
-                    cancelarEdicionRubro();
-                    cargarRubros();
-                    setTimeout(() => msj.innerText = "", 3000);
-                }
-            } catch (e) { msj.innerText = "❌ Error"; msj.style.color = "var(--danger)"; }
-        }
-
-        async function eliminarRubro(id) {
-            if (confirm("¿Borrar rubro? Se borrarán las relaciones.")) {
-                await fetch(`${baseUrl}/Rubros/${id}`, { method: 'DELETE' });
-                cargarRubros();
-            }
-        }
-
-        // --- LÓGICA DE CATEGORÍAS ---
-        async function cargarCategorias() {
-            try {
-                const res = await fetch(`${baseUrl}/Categorias`);
-                const data = await res.json();
-                document.getElementById('metric-cat').innerText = data.length;
-                const tbody = document.getElementById('tabla-categorias');
-                const selectArticulo = document.getElementById('categoriaArticulo');
-
-                tbody.innerHTML = '';
-                selectArticulo.innerHTML = '<option value="">Seleccioná...</option>';
-
-                data.forEach(item => {
-                    const id = item.codCategoria !== undefined ? item.codCategoria : item.CodCategoria;
-                    const nombre = item.nombre !== undefined ? item.nombre : item.Nombre;
-                    const codRubro = item.codRubro !== undefined ? item.codRubro : item.CodRubro;
-                    const nombreSeguro = nombre.replace(/'/g, "\\'");
-
-                    tbody.innerHTML += `<tr>
-                            <td><strong>${nombre}</strong></td>
-                            <td>
-                                <button class="btn-editar" onclick="prepararEdicionCategoria(${id}, '${nombreSeguro}', ${codRubro})"><i class="fas fa-pen"></i></button>
-                                <button class="btn-borrar" onclick="eliminarCategoria(${id})"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>`;
-                    selectArticulo.innerHTML += `<option value="${id}">${nombre}</option>`;
-                });
-            } catch (e) { }
-        }
-
-        function prepararEdicionCategoria(id, nombre, codRubro) {
-            idCategoriaEditando = id;
-            document.getElementById('nombreCategoria').value = nombre;
-            document.getElementById('rubroCategoria').value = codRubro || "";
-            document.getElementById('titulo-form-categoria').innerHTML = '<i class="fas fa-pen"></i> Editando Categoría';
-            document.getElementById('btn-submit-categoria').innerText = 'Actualizar Categoría';
-            document.getElementById('btn-cancelar-categoria').style.display = 'block';
-            window.scrollTo(0, 0);
-        }
-
-        function cancelarEdicionCategoria() {
-            idCategoriaEditando = 0;
-            document.getElementById('nombreCategoria').value = '';
-            document.getElementById('rubroCategoria').value = '';
-            document.getElementById('titulo-form-categoria').innerHTML = '<i class="fas fa-tag"></i> Nueva Categoría';
-            document.getElementById('btn-submit-categoria').innerText = 'Guardar Categoría';
-            document.getElementById('btn-cancelar-categoria').style.display = 'none';
-        }
-
-        async function guardarCategoria() {
-            const nombre = document.getElementById('nombreCategoria').value;
-            const rubroId = document.getElementById('rubroCategoria').value;
-            const msj = document.getElementById('mensajeCategoria');
-
-            if (!nombre || !rubroId || rubroId === "undefined" || rubroId === "") {
-                msj.innerText = "⚠️ Completá el nombre y seleccioná un rubro"; msj.style.color = "var(--danger)"; setTimeout(() => msj.innerText = "", 3000);
-                return;
-            }
-
-            const payload = { codCategoria: idCategoriaEditando, nombre: nombre, codRubro: parseInt(rubroId) };
-            const url = idCategoriaEditando > 0 ? `${baseUrl}/Categorias/${idCategoriaEditando}` : `${baseUrl}/Categorias`;
-            const metodo = idCategoriaEditando > 0 ? 'PUT' : 'POST';
-
-            try {
-                const res = await fetch(url, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (res.ok) {
-                    msj.innerText = "✅ Guardada"; msj.style.color = "var(--success)";
-                    cancelarEdicionCategoria();
-                    cargarCategorias();
-                    setTimeout(() => msj.innerText = "", 3000);
-                } else { msj.innerText = "❌ Error"; msj.style.color = "var(--danger)"; }
-            } catch (e) { msj.innerText = "❌ Error de conexión"; msj.style.color = "var(--danger)"; }
-        }
-
-        async function eliminarCategoria(id) { if (confirm("¿Borrar categoría?")) { await fetch(`${baseUrl}/Categorias/${id}`, { method: 'DELETE' }); cargarCategorias(); } }
-
-        // --- LÓGICA DE PRODUCTOS ---
         async function cargarArticulos() {
             try {
                 const res = await fetch(`${baseUrl}/Articulos`);
@@ -1091,31 +920,45 @@
 
                 data.forEach(item => {
                     const id = item.codArticulo !== undefined ? item.codArticulo : item.CodArticulo;
-                    const catId = item.categoriaId !== undefined ? item.categoriaId : item.CategoriaId;
-                    const descSegura = item.descripcion.replace(/'/g, "\\'");
-
                     tbody.innerHTML += `<tr>
-                            <td><strong>${item.descripcion}</strong></td>
-                            <td>$${item.costo}</td>
-                            <td>
-                                <button class="btn-editar" onclick="prepararEdicionArticulo(${id}, '${descSegura}', ${item.costo}, ${catId})"><i class="fas fa-pen"></i></button>
-                                <button class="btn-borrar" onclick="eliminarArticulo(${id})"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>`;
+                                        <td><strong>${item.descripcion}</strong></td>
+                                        <td>$${item.costo}</td>
+                                        <td>
+                                            <button class="btn-editar" onclick="prepararEdicionArticulo(${id})"><i class="fas fa-pen"></i></button>
+                                            <button class="btn-borrar" onclick="eliminarArticulo(${id})"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>`;
                     cajaPromos.innerHTML += `<div class="fila-articulo-promo"><span>${item.descripcion}</span><input type="number" min="0" value="0" data-id="${id}" class="cant-articulo-promo"></div>`;
                 });
             } catch (e) { }
         }
 
-        function prepararEdicionArticulo(id, desc, costo, catId) {
-            idArticuloEditando = id;
-            document.getElementById('descArticulo').value = desc;
-            document.getElementById('costoArticulo').value = costo;
-            document.getElementById('categoriaArticulo').value = catId || "";
-            document.getElementById('titulo-form-articulo').innerHTML = '<i class="fas fa-pen"></i> Editando Producto';
-            document.getElementById('btn-submit-articulo').innerText = 'Actualizar Producto';
-            document.getElementById('btn-cancelar-articulo').style.display = 'block';
-            window.scrollTo(0, 0);
+        async function prepararEdicionArticulo(id) {
+            try {
+                const res = await fetch(`${baseUrl}/Articulos/${id}`);
+                const articulo = await res.json();
+
+                idArticuloEditando = id;
+                document.getElementById('descArticulo').value = articulo.descripcion;
+                document.getElementById('costoArticulo').value = articulo.costo;
+                document.getElementById('categoriaArticulo').value = articulo.categoriaId;
+
+                const evt = new Event('change');
+                document.getElementById('categoriaArticulo').dispatchEvent(evt);
+
+                document.getElementById('maxGustos').value = articulo.maxGustos || 0;
+
+                const container = document.getElementById('contenedor-imagenes-extra');
+                container.innerHTML = '';
+                if (articulo.imagenesExtras && articulo.imagenesExtras.length > 0) {
+                    articulo.imagenesExtras.forEach(url => agregarInputImagen(url));
+                }
+
+                document.getElementById('titulo-form-articulo').innerHTML = '<i class="fas fa-pen"></i> Editando Producto';
+                document.getElementById('btn-submit-articulo').innerText = 'Actualizar Producto';
+                document.getElementById('btn-cancelar-articulo').style.display = 'block';
+                window.scrollTo(0, 0);
+            } catch (e) { alert("Error al cargar detalles del producto"); }
         }
 
         function cancelarEdicionArticulo() {
@@ -1124,6 +967,11 @@
             document.getElementById('costoArticulo').value = '';
             document.getElementById('imgArticulo').value = '';
             document.getElementById('categoriaArticulo').value = '';
+
+            document.getElementById('contenedor-limite-gustos').style.display = 'none';
+            document.getElementById('maxGustos').value = '0';
+            document.getElementById('contenedor-imagenes-extra').innerHTML = '';
+
             document.getElementById('titulo-form-articulo').innerHTML = '<i class="fas fa-plus-circle"></i> Nuevo Producto';
             document.getElementById('btn-submit-articulo').innerText = 'Guardar Producto';
             document.getElementById('btn-cancelar-articulo').style.display = 'none';
@@ -1136,15 +984,36 @@
             const catId = document.getElementById('categoriaArticulo').value;
             const msj = document.getElementById('mensajeArticulo');
 
-            if (!desc || !costo || !catId) { msj.innerText = "⚠️ Completá los datos requeridos"; return; }
+            if (!desc || !costo || !catId) {
+                msj.innerText = "⚠️ Completá los datos requeridos";
+                return;
+            }
+
+            const gustosLimit = parseInt(document.getElementById('maxGustos').value) || 0;
+            const galeriaUrls = [];
+
+            document.querySelectorAll('.imagen-extra-existente').forEach(hiddenInput => {
+                galeriaUrls.push(hiddenInput.value);
+            });
+
+            const inputsNuevos = document.querySelectorAll('.imagen-extra-file');
+            for (const input of inputsNuevos) {
+                if (input.files && input.files.length > 0) {
+                    const fotoExtraBase64 = await leerFoto(input);
+                    if (fotoExtraBase64) galeriaUrls.push(fotoExtraBase64);
+                }
+            }
+
             const fotoBase64 = await leerFoto(inputImg);
 
             const payload = {
                 descripcion: desc,
-                urlImagen: fotoBase64, // Si está vacía, el PUT de C# no la sobreescribe
+                urlImagen: fotoBase64,
                 costo: parseFloat(costo),
                 stock: 0, stockMinimo: 0,
-                categoriaId: parseInt(catId)
+                categoriaId: parseInt(catId),
+                maxGustos: gustosLimit,
+                imagenesExtras: galeriaUrls
             };
 
             const url = idArticuloEditando > 0 ? `${baseUrl}/Articulos/${idArticuloEditando}` : `${baseUrl}/Articulos`;
@@ -1157,137 +1026,107 @@
                     cancelarEdicionArticulo();
                     cargarArticulos();
                     setTimeout(() => msj.innerText = "", 3000);
+                } else {
+                    msj.innerText = "❌ Error al guardar"; msj.style.color = "var(--danger)";
                 }
-            } catch (e) { msj.innerText = "❌ Error"; msj.style.color = "var(--danger)"; }
+            } catch (e) { msj.innerText = "❌ Error de conexión"; msj.style.color = "var(--danger)"; }
         }
 
         async function eliminarArticulo(id) { if (confirm("¿Eliminar producto?")) { await fetch(`${baseUrl}/Articulos/${id}`, { method: 'DELETE' }); cargarArticulos(); } }
 
-        // --- LÓGICA DE PROMOS ---
-        async function cargarPromociones() {
+        async function cargarSabores() {
             try {
-                const res = await fetch(`${baseUrl}/Promos`);
+                const res = await fetch(`${baseUrl}/Gustos`);
                 const data = await res.json();
-                document.getElementById('metric-promo').innerText = data.length;
-                const tbody = document.getElementById('tabla-promos');
+                const tbody = document.getElementById('tabla-sabores');
                 tbody.innerHTML = '';
+
                 data.forEach(item => {
-                    const id = item.codPromo !== undefined ? item.codPromo : item.CodPromo;
-                    const nombreSeguro = item.nombre.replace(/'/g, "\\'");
+                    const id = item.id !== undefined ? item.id : item.Id;
+                    const nombre = item.nombre !== undefined ? item.nombre : item.Nombre;
+                    const hayStock = item.hayStock !== undefined ? item.hayStock : item.HayStock;
+                    const nombreSeguro = nombre.replace(/'/g, "\\'");
+
+                    const badgeStr = hayStock
+                        ? `<span style="background:var(--success); color:white; padding:4px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Disponible</span>`
+                        : `<span style="background:var(--text-muted); color:white; padding:4px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Agotado</span>`;
 
                     tbody.innerHTML += `<tr>
-                            <td><strong>${item.nombre}</strong></td>
-                            <td>$${item.precioVenta}</td>
-                            <td>
-                                <button class="btn-editar" onclick="prepararEdicionPromo(${id})"><i class="fas fa-pen"></i></button>
-                                <button class="btn-borrar" onclick="eliminarPromocion(${id})"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>`;
+                                <td><strong>${nombre}</strong></td>
+                                <td>${badgeStr}</td>
+                                <td>
+                                    <button class="btn-editar" onclick="prepararEdicionSabor(${id}, '${nombreSeguro}', ${hayStock})"><i class="fas fa-pen"></i></button>
+                                </td>
+                            </tr>`;
                 });
             } catch (e) { }
         }
 
-        async function prepararEdicionPromo(id) {
-            try {
-                const res = await fetch(`${baseUrl}/Promos/${id}`);
-                const promo = await res.json();
-
-                idPromoEditando = id;
-                document.getElementById('nombrePromo').value = promo.nombre;
-                document.getElementById('costoPromo').value = promo.precioVenta;
-
-                // Reiniciamos inputs de cantidades
-                document.querySelectorAll('.cant-articulo-promo').forEach(input => input.value = 0);
-
-                // Si la API devuelve los detalles, los marcamos
-                if (promo.detallePromos && promo.detallePromos.length > 0) {
-                    promo.detallePromos.forEach(det => {
-                        const input = document.querySelector(`.cant-articulo-promo[data-id='${det.codArticulo}']`);
-                        if (input) input.value = det.cantidad;
-                    });
-                }
-
-                document.getElementById('titulo-form-promo').innerHTML = '<i class="fas fa-pen"></i> Editando Promoción';
-                document.getElementById('btn-submit-promo').innerText = 'Actualizar Promoción';
-                document.getElementById('btn-cancelar-promo').style.display = 'block';
-                window.scrollTo(0, 0);
-            } catch (e) { alert("Error al cargar detalles de la promoción"); }
+        function prepararEdicionSabor(id, nombre, hayStock) {
+            idSaborEditando = id;
+            document.getElementById('nombreSabor').value = nombre;
+            document.getElementById('stockSabor').value = hayStock ? "true" : "false";
+            document.getElementById('titulo-form-sabor').innerHTML = '<i class="fas fa-pen"></i> Editando Sabor';
+            document.getElementById('btn-submit-sabor').innerText = 'Actualizar Sabor';
+            document.getElementById('btn-cancelar-sabor').style.display = 'block';
+            window.scrollTo(0, 0);
         }
 
-        function cancelarEdicionPromo() {
-            idPromoEditando = 0;
-            document.getElementById('nombrePromo').value = '';
-            document.getElementById('costoPromo').value = '';
-            document.getElementById('imgPromo').value = '';
-            document.querySelectorAll('.cant-articulo-promo').forEach(input => input.value = 0);
-
-            document.getElementById('titulo-form-promo').innerHTML = '<i class="fas fa-star"></i> Nuevo Combo / Promo';
-            document.getElementById('btn-submit-promo').innerText = 'Guardar Promoción';
-            document.getElementById('btn-cancelar-promo').style.display = 'none';
+        function cancelarEdicionSabor() {
+            idSaborEditando = 0;
+            document.getElementById('nombreSabor').value = '';
+            document.getElementById('stockSabor').value = 'true';
+            document.getElementById('titulo-form-sabor').innerHTML = '<i class="fas fa-ice-cream"></i> Nuevo Sabor';
+            document.getElementById('btn-submit-sabor').innerText = 'Guardar Sabor';
+            document.getElementById('btn-cancelar-sabor').style.display = 'none';
         }
 
-        async function guardarPromocion() {
-            const nombre = document.getElementById('nombrePromo').value;
-            const costo = document.getElementById('costoPromo').value;
-            const inputImg = document.getElementById('imgPromo');
-            const msj = document.getElementById('mensajePromo');
+        async function guardarSabor() {
+            const nombre = document.getElementById('nombreSabor').value;
+            const hayStock = document.getElementById('stockSabor').value === 'true';
+            const msj = document.getElementById('mensajeSabor');
 
-            if (!nombre || !costo) { msj.innerText = "⚠️ Faltan datos"; return; }
+            if (!nombre) return;
 
-            const articulosSel = [];
-            document.querySelectorAll('.cant-articulo-promo').forEach(input => {
-                const cant = parseInt(input.value);
-                if (cant > 0) articulosSel.push({ codArticulo: parseInt(input.getAttribute('data-id')), cantidad: cant });
-            });
-            if (articulosSel.length === 0) { msj.innerText = "⚠️ Seleccioná artículos para el combo"; return; }
-
-            const fotoBase64 = await leerFoto(inputImg);
-
-            const payload = {
-                nombre: nombre, descripcion: "", categoria: "Promos",
-                urlImagen: fotoBase64, precioVenta: parseFloat(costo),
-                articulos: articulosSel
-            };
-
-            const url = idPromoEditando > 0 ? `${baseUrl}/Promos/${idPromoEditando}` : `${baseUrl}/Promos`;
-            const metodo = idPromoEditando > 0 ? 'PUT' : 'POST';
+            const payload = { id: idSaborEditando, nombre: nombre, hayStock: hayStock };
+            const url = idSaborEditando > 0 ? `${baseUrl}/Gustos/${idSaborEditando}` : `${baseUrl}/Gustos`;
+            const metodo = idSaborEditando > 0 ? 'PUT' : 'POST';
 
             try {
                 const res = await fetch(url, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 if (res.ok) {
-                    msj.innerText = "✅ Guardada"; msj.style.color = "var(--success)";
-                    cancelarEdicionPromo();
-                    cargarPromociones();
+                    msj.innerText = "✅ Guardado con éxito"; msj.style.color = "var(--success)";
+                    cancelarEdicionSabor();
+                    cargarSabores();
                     setTimeout(() => msj.innerText = "", 3000);
-                } else { msj.innerText = "❌ Error"; msj.style.color = "var(--danger)"; }
-            } catch (e) { msj.innerText = "❌ Error de conexión"; msj.style.color = "var(--danger)"; }
+                }
+            } catch (e) { msj.innerText = "❌ Error"; msj.style.color = "var(--danger)"; }
         }
 
+        async function cargarPedidos() { try { const res = await fetch(`${baseUrl}/Pedidos/Pendientes`); if (!res.ok) throw new Error(""); const data = await res.json(); const tbody = document.getElementById('tabla-pedidos'); const msjSinPedidos = document.getElementById('mensaje-sin-pedidos'); tbody.innerHTML = ''; if (data.length === 0) { msjSinPedidos.style.display = 'block'; } else { msjSinPedidos.style.display = 'none'; data.forEach(item => { tbody.innerHTML += `<tr><td>${item.fecha}</td><td><strong>${item.cliente}</strong></td><td style="font-weight: bold; color: var(--text-main);">$${item.total}</td><td id="acciones-pedido-${item.id}"><button class="btn-guardar" style="width: auto; padding: 6px 12px; font-size: 0.85rem; margin-right: 5px; margin-bottom: 5px;" onclick="cambiarEstadoPedido(${item.id}, 'Completado')"><i class="fas fa-check"></i></button><button class="btn-borrar" style="margin-bottom: 5px;" onclick="cambiarEstadoPedido(${item.id}, 'Cancelado')"><i class="fas fa-times"></i></button></td></tr>`; }); } } catch (e) { } }
+        async function cambiarEstadoPedido(idPedido, nuevoEstado) { if (confirm(`¿Marcar este pedido como ${nuevoEstado}?`)) { try { await fetch(`${baseUrl}/Pedidos/${idPedido}/Estado`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(nuevoEstado) }); cargarEstadisticas(); cargarPedidos(); } catch (e) { } } }
+        async function cargarEstadisticas() { const select = document.getElementById('selectYear'); if (select.options.length === 0) { const anioActual = new Date().getFullYear(); for (let i = anioActual; i >= 2026; i--) { const option = document.createElement('option'); option.value = i; option.text = i; select.appendChild(option); } } const anioSeleccionado = select.value; try { const res = await fetch(`${baseUrl}/Estadisticas/Ventas?anio=${anioSeleccionado}`); if (!res.ok) throw new Error("Error"); const data = await res.json(); const nombresMeses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']; const labels = data.map(d => nombresMeses[d.mes - 1] || d.mes); const totales = data.map(d => d.total); const ctx = document.getElementById('graficoVentas').getContext('2d'); if (chartInstancia) { chartInstancia.destroy(); } chartInstancia = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: `Facturación ${anioSeleccionado} ($)`, data: totales, backgroundColor: '#cc0000', borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } } }); } catch (e) { } }
+        async function cargarConfigLocal() { try { const res = await fetch(`${baseUrl}/Configuracion`); if (res.ok) { const data = await res.json(); if (data.whatsApp) document.getElementById('config-wpp').value = data.whatsApp; if (data.instagram) document.getElementById('config-ig').value = data.instagram; if (data.facebook) document.getElementById('config-fb').value = data.facebook; if (data.googleMaps) document.getElementById('config-maps').value = data.googleMaps; if (data.alias) document.getElementById('config-alias').value = data.alias; } } catch (e) { } }
+        async function guardarConfigLocal() { const payload = { whatsApp: document.getElementById('config-wpp').value, instagram: document.getElementById('config-ig').value, facebook: document.getElementById('config-fb').value, googleMaps: document.getElementById('config-maps').value, alias: document.getElementById('config-alias').value }; const msj = document.getElementById('mensaje-config'); try { const res = await fetch(`${baseUrl}/Configuracion`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); if (res.ok) { msj.innerText = "✅ Datos actualizados."; msj.style.color = "var(--success)"; } } catch (e) { msj.innerText = "❌ Error al guardar"; msj.style.color = "var(--danger)"; } setTimeout(() => msj.innerText = "", 3000); }
+        async function cargarEnvio() { try { const res = await fetch(`${baseUrl}/TarifaEnvio`); document.getElementById('input-envio').value = await res.json(); } catch (e) { } }
+        async function guardarEnvio() { const costo = document.getElementById('input-envio').value; const msj = document.getElementById('mensaje-envio'); if (!costo) return; try { const res = await fetch(`${baseUrl}/TarifaEnvio`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: costo }); if (res.ok) { msj.innerText = "✅ Tarifa actualizada."; msj.style.color = "var(--success)"; setTimeout(() => msj.innerText = "", 3000); } } catch (e) { } }
+        async function cargarRubros() { try { const res = await fetch(`${baseUrl}/Rubros`); const data = await res.json(); const tbody = document.getElementById('tabla-rubros'); const selectRubroCategoria = document.getElementById('rubroCategoria'); tbody.innerHTML = ''; selectRubroCategoria.innerHTML = '<option value="">Seleccioná...</option>'; data.forEach(item => { const id = item.codRubro !== undefined ? item.codRubro : item.CodRubro; const nombre = item.nombre !== undefined ? item.nombre : item.Nombre; const nombreSeguro = nombre.replace(/'/g, "\\'"); tbody.innerHTML += `<tr><td><strong>${nombre}</strong></td><td><button class="btn-editar" onclick="prepararEdicionRubro(${id}, '${nombreSeguro}')"><i class="fas fa-pen"></i></button><button class="btn-borrar" onclick="eliminarRubro(${id})"><i class="fas fa-trash"></i></button></td></tr>`; selectRubroCategoria.innerHTML += `<option value="${id}">${nombre}</option>`; }); } catch (e) { } }
+        function prepararEdicionRubro(id, nombre) { idRubroEditando = id; document.getElementById('nombreRubro').value = nombre; document.getElementById('titulo-form-rubro').innerHTML = '<i class="fas fa-pen"></i> Editando Rubro'; document.getElementById('btn-submit-rubro').innerText = 'Actualizar Rubro'; document.getElementById('btn-cancelar-rubro').style.display = 'block'; window.scrollTo(0, 0); }
+        function cancelarEdicionRubro() { idRubroEditando = 0; document.getElementById('nombreRubro').value = ''; document.getElementById('titulo-form-rubro').innerHTML = '<i class="fas fa-layer-group"></i> Nuevo Rubro'; document.getElementById('btn-submit-rubro').innerText = 'Guardar'; document.getElementById('btn-cancelar-rubro').style.display = 'none'; }
+        async function guardarRubro() { const nombre = document.getElementById('nombreRubro').value; const msj = document.getElementById('mensajeRubro'); if (!nombre) return; const payload = { codRubro: idRubroEditando, nombre: nombre }; const url = idRubroEditando > 0 ? `${baseUrl}/Rubros/${idRubroEditando}` : `${baseUrl}/Rubros`; const metodo = idRubroEditando > 0 ? 'PUT' : 'POST'; try { const res = await fetch(url, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); if (res.ok) { msj.innerText = "✅ Guardado con éxito"; msj.style.color = "var(--success)"; cancelarEdicionRubro(); cargarRubros(); setTimeout(() => msj.innerText = "", 3000); } } catch (e) { msj.innerText = "❌ Error"; msj.style.color = "var(--danger)"; } }
+        async function eliminarRubro(id) { if (confirm("¿Borrar rubro? Se borrarán las relaciones.")) { await fetch(`${baseUrl}/Rubros/${id}`, { method: 'DELETE' }); cargarRubros(); } }
+        async function cargarCategorias() { try { const res = await fetch(`${baseUrl}/Categorias`); const data = await res.json(); document.getElementById('metric-cat').innerText = data.length; const tbody = document.getElementById('tabla-categorias'); const selectArticulo = document.getElementById('categoriaArticulo'); tbody.innerHTML = ''; selectArticulo.innerHTML = '<option value="">Seleccioná...</option>'; data.forEach(item => { const id = item.codCategoria !== undefined ? item.codCategoria : item.CodCategoria; const nombre = item.nombre !== undefined ? item.nombre : item.Nombre; const codRubro = item.codRubro !== undefined ? item.codRubro : item.CodRubro; const nombreSeguro = nombre.replace(/'/g, "\\'"); tbody.innerHTML += `<tr><td><strong>${nombre}</strong></td><td><button class="btn-editar" onclick="prepararEdicionCategoria(${id}, '${nombreSeguro}', ${codRubro})"><i class="fas fa-pen"></i></button><button class="btn-borrar" onclick="eliminarCategoria(${id})"><i class="fas fa-trash"></i></button></td></tr>`; selectArticulo.innerHTML += `<option value="${id}">${nombre}</option>`; }); } catch (e) { } }
+        function prepararEdicionCategoria(id, nombre, codRubro) { idCategoriaEditando = id; document.getElementById('nombreCategoria').value = nombre; document.getElementById('rubroCategoria').value = codRubro || ""; document.getElementById('titulo-form-categoria').innerHTML = '<i class="fas fa-pen"></i> Editando Categoría'; document.getElementById('btn-submit-categoria').innerText = 'Actualizar Categoría'; document.getElementById('btn-cancelar-categoria').style.display = 'block'; window.scrollTo(0, 0); }
+        function cancelarEdicionCategoria() { idCategoriaEditando = 0; document.getElementById('nombreCategoria').value = ''; document.getElementById('rubroCategoria').value = ''; document.getElementById('titulo-form-categoria').innerHTML = '<i class="fas fa-tag"></i> Nueva Categoría'; document.getElementById('btn-submit-categoria').innerText = 'Guardar Categoría'; document.getElementById('btn-cancelar-categoria').style.display = 'none'; }
+        async function guardarCategoria() { const nombre = document.getElementById('nombreCategoria').value; const rubroId = document.getElementById('rubroCategoria').value; const msj = document.getElementById('mensajeCategoria'); if (!nombre || !rubroId || rubroId === "undefined" || rubroId === "") { msj.innerText = "⚠️ Completá el nombre y seleccioná un rubro"; msj.style.color = "var(--danger)"; setTimeout(() => msj.innerText = "", 3000); return; } const payload = { codCategoria: idCategoriaEditando, nombre: nombre, codRubro: parseInt(rubroId) }; const url = idCategoriaEditando > 0 ? `${baseUrl}/Categorias/${idCategoriaEditando}` : `${baseUrl}/Categorias`; const metodo = idCategoriaEditando > 0 ? 'PUT' : 'POST'; try { const res = await fetch(url, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); if (res.ok) { msj.innerText = "✅ Guardada"; msj.style.color = "var(--success)"; cancelarEdicionCategoria(); cargarCategorias(); setTimeout(() => msj.innerText = "", 3000); } else { msj.innerText = "❌ Error"; msj.style.color = "var(--danger)"; } } catch (e) { msj.innerText = "❌ Error de conexión"; msj.style.color = "var(--danger)"; } }
+        async function eliminarCategoria(id) { if (confirm("¿Borrar categoría?")) { await fetch(`${baseUrl}/Categorias/${id}`, { method: 'DELETE' }); cargarCategorias(); } }
+        async function cargarPromociones() { try { const res = await fetch(`${baseUrl}/Promos`); const data = await res.json(); document.getElementById('metric-promo').innerText = data.length; const tbody = document.getElementById('tabla-promos'); tbody.innerHTML = ''; data.forEach(item => { const id = item.codPromo !== undefined ? item.codPromo : item.CodPromo; tbody.innerHTML += `<tr><td><strong>${item.nombre}</strong></td><td>$${item.precioVenta}</td><td><button class="btn-editar" onclick="prepararEdicionPromo(${id})"><i class="fas fa-pen"></i></button><button class="btn-borrar" onclick="eliminarPromocion(${id})"><i class="fas fa-trash"></i></button></td></tr>`; }); } catch (e) { } }
+        async function prepararEdicionPromo(id) { try { const res = await fetch(`${baseUrl}/Promos/${id}`); const promo = await res.json(); idPromoEditando = id; document.getElementById('nombrePromo').value = promo.nombre; document.getElementById('costoPromo').value = promo.precioVenta; document.querySelectorAll('.cant-articulo-promo').forEach(input => input.value = 0); if (promo.detallePromos && promo.detallePromos.length > 0) { promo.detallePromos.forEach(det => { const input = document.querySelector(`.cant-articulo-promo[data-id='${det.codArticulo}']`); if (input) input.value = det.cantidad; }); } document.getElementById('titulo-form-promo').innerHTML = '<i class="fas fa-pen"></i> Editando Promoción'; document.getElementById('btn-submit-promo').innerText = 'Actualizar Promoción'; document.getElementById('btn-cancelar-promo').style.display = 'block'; window.scrollTo(0, 0); } catch (e) { alert("Error al cargar detalles de la promoción"); } }
+        function cancelarEdicionPromo() { idPromoEditando = 0; document.getElementById('nombrePromo').value = ''; document.getElementById('costoPromo').value = ''; document.getElementById('imgPromo').value = ''; document.querySelectorAll('.cant-articulo-promo').forEach(input => input.value = 0); document.getElementById('titulo-form-promo').innerHTML = '<i class="fas fa-star"></i> Nuevo Combo / Promo'; document.getElementById('btn-submit-promo').innerText = 'Guardar Promoción'; document.getElementById('btn-cancelar-promo').style.display = 'none'; }
+        async function guardarPromocion() { const nombre = document.getElementById('nombrePromo').value; const costo = document.getElementById('costoPromo').value; const inputImg = document.getElementById('imgPromo'); const msj = document.getElementById('mensajePromo'); if (!nombre || !costo) { msj.innerText = "⚠️ Faltan datos"; return; } const articulosSel = []; document.querySelectorAll('.cant-articulo-promo').forEach(input => { const cant = parseInt(input.value); if (cant > 0) articulosSel.push({ codArticulo: parseInt(input.getAttribute('data-id')), cantidad: cant }); }); if (articulosSel.length === 0) { msj.innerText = "⚠️ Seleccioná artículos para el combo"; return; } const fotoBase64 = await leerFoto(inputImg); const payload = { nombre: nombre, descripcion: "", categoria: "Promos", urlImagen: fotoBase64, precioVenta: parseFloat(costo), articulos: articulosSel }; const url = idPromoEditando > 0 ? `${baseUrl}/Promos/${idPromoEditando}` : `${baseUrl}/Promos`; const metodo = idPromoEditando > 0 ? 'PUT' : 'POST'; try { const res = await fetch(url, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); if (res.ok) { msj.innerText = "✅ Guardada"; msj.style.color = "var(--success)"; cancelarEdicionPromo(); cargarPromociones(); setTimeout(() => msj.innerText = "", 3000); } else { msj.innerText = "❌ Error"; msj.style.color = "var(--danger)"; } } catch (e) { msj.innerText = "❌ Error de conexión"; msj.style.color = "var(--danger)"; } }
         async function eliminarPromocion(id) { if (confirm("¿Borrar promoción?")) { await fetch(`${baseUrl}/Promos/${id}`, { method: 'DELETE' }); cargarPromociones(); } }
-
-        // --- LÓGICA DE BANNERS (Sin cambios por ahora) ---
-        async function cargarBanners() {
-            try {
-                const res = await fetch(`${baseUrl}/Banners`);
-                const data = await res.json();
-                const tbody = document.getElementById('tabla-banners');
-                tbody.innerHTML = '';
-                data.forEach(item => {
-                    const id = item.codBanner !== undefined ? item.codBanner : item.CodBanner;
-                    tbody.innerHTML += `<tr><td><strong>${item.titulo}</strong><br><small>${item.subtitulo}</small></td><td><div style="width:30px;height:30px;background:${item.backgroundColor};border-radius:4px;border:1px solid #ddd;"></div></td><td><button class="btn-borrar" onclick="eliminarBanner(${id})"><i class="fas fa-trash"></i></button></td></tr>`;
-                });
-            } catch (e) { }
-        }
-
-        async function guardarBanner() {
-            const titulo = document.getElementById('tituloBanner').value, subtitulo = document.getElementById('subtituloBanner').value, color = document.getElementById('colorBanner').value, msj = document.getElementById('mensajeBanner');
-            if (!titulo) return;
-            try {
-                const res = await fetch(`${baseUrl}/Banners`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ titulo: titulo, subtitulo: subtitulo, backgroundColor: color }) });
-                if (res.ok) { msj.innerText = "✅ Guardado"; msj.style.color = "var(--success)"; document.getElementById('tituloBanner').value = ""; document.getElementById('subtituloBanner').value = ""; cargarBanners(); setTimeout(() => msj.innerText = "", 3000); }
-            } catch (e) { }
-        }
-
+        async function cargarBanners() { try { const res = await fetch(`${baseUrl}/Banners`); const data = await res.json(); const tbody = document.getElementById('tabla-banners'); tbody.innerHTML = ''; data.forEach(item => { const id = item.codBanner !== undefined ? item.codBanner : item.CodBanner; tbody.innerHTML += `<tr><td><strong>${item.titulo}</strong><br><small>${item.subtitulo}</small></td><td><div style="width:30px;height:30px;background:${item.backgroundColor};border-radius:4px;border:1px solid #ddd;"></div></td><td><button class="btn-borrar" onclick="eliminarBanner(${id})"><i class="fas fa-trash"></i></button></td></tr>`; }); } catch (e) { } }
+        async function guardarBanner() { const titulo = document.getElementById('tituloBanner').value, subtitulo = document.getElementById('subtituloBanner').value, color = document.getElementById('colorBanner').value, msj = document.getElementById('mensajeBanner'); if (!titulo) return; try { const res = await fetch(`${baseUrl}/Banners`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ titulo: titulo, subtitulo: subtitulo, backgroundColor: color }) }); if (res.ok) { msj.innerText = "✅ Guardado"; msj.style.color = "var(--success)"; document.getElementById('tituloBanner').value = ""; document.getElementById('subtituloBanner').value = ""; cargarBanners(); setTimeout(() => msj.innerText = "", 3000); } } catch (e) { } }
         async function eliminarBanner(id) { if (confirm("¿Borrar banner?")) { await fetch(`${baseUrl}/Banners/${id}`, { method: 'DELETE' }); cargarBanners(); } }
 
         window.onload = () => {
@@ -1295,6 +1134,7 @@
             cargarPedidos();
             cargarEstadisticas();
             cargarEnvio();
+            cargarSabores();
             cargarRubros();
             cargarCategorias();
             cargarArticulos();
