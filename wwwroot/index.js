@@ -14,7 +14,7 @@ let cantidadDetalle = 1;
 // --- VARIABLES GLOBALES DEL SLIDER ---
 let sliderActualIndex = 0;
 let sliderTotalFrames = 0;
-let galeriaImagenes = []; // Acá se guardan todas las fotos del producto abierto
+let galeriaImagenes = [];
 
 // --- SISTEMA DE NOTIFICACIONES TOAST ---
 function mostrarNotificacion(mensaje, tipo = 'error') {
@@ -89,34 +89,56 @@ async function inicializarApp() {
     const recoverId = urlParams.get('id');
     const itemCompartido = urlParams.get('item');
 
+    // --- LÓGICA DE RECUPERACIÓN CORREGIDA CON BÚSQUEDA BLINDADA ---
     if (recoverData && recoverId) {
+        pedidoEnEdicion = recoverId;
+        let carritoLiviano = {};
+
         try {
-            const resPendientes = await fetch(baseURL + '/Pedidos/Pendientes?_t=' + new Date().getTime(), fetchOptions);
-            if (resPendientes.ok) {
-                const pendientes = await resPendientes.json();
-                const siguePendiente = pendientes.some(p => (p.id || p.Id) == recoverId);
-                if (!siguePendiente) { mostrarNotificacion("⚠️ Este pedido ya fue preparado o finalizado."); }
-                else {
-                    pedidoEnEdicion = recoverId;
-                    let carritoLiviano = {};
-                    try { carritoLiviano = JSON.parse(recoverData); } catch (e) { carritoLiviano = JSON.parse(decodeURIComponent(recoverData)); }
-                    carrito = {};
-                    let hayProductos = false;
-                    for (let nombreProd in carritoLiviano) {
-                        const prodOriginal = window.todosLosProductos.find(p => nombreProd.startsWith(p.nombre) || nombreProd.startsWith(p.nombre.replace(/'/g, "\\'")));
-                        if (prodOriginal) {
-                            carrito[nombreProd] = { precio: prodOriginal.precio, cantidad: carritoLiviano[nombreProd], img: prodOriginal.img };
-                            hayProductos = true;
-                        }
-                    }
-                    if (hayProductos) {
-                        guardarCarritoEnStorage();
-                        localStorage.setItem('modalPasoLaDolce', '1');
-                        setTimeout(() => { document.getElementById('modal-cart').style.display = 'flex'; renderizarItemsModal(); irPaso(1); }, 300);
-                    }
-                }
+            carritoLiviano = JSON.parse(recoverData);
+        } catch (e) {
+            carritoLiviano = JSON.parse(decodeURIComponent(recoverData));
+        }
+
+        carrito = {};
+        let hayProductos = false;
+
+        for (let nombreProd in carritoLiviano) {
+            const prodOriginal = window.todosLosProductos.find(p => {
+                const nomLim = p.nombre.replace(/'/g, "\\'");
+                return nombreProd === p.nombre ||
+                    nombreProd === nomLim ||
+                    nombreProd.startsWith(p.nombre + " (") ||
+                    nombreProd.startsWith(nomLim + " (");
+            });
+
+            if (prodOriginal) {
+                carrito[nombreProd] = {
+                    precio: prodOriginal.precio,
+                    cantidad: carritoLiviano[nombreProd],
+                    img: prodOriginal.img
+                };
+                hayProductos = true;
+            } else {
+                carrito[nombreProd] = {
+                    precio: 0,
+                    cantidad: carritoLiviano[nombreProd],
+                    img: imgGris
+                };
+                hayProductos = true;
             }
-        } catch (e) { console.error(e); }
+        }
+
+        if (hayProductos) {
+            guardarCarritoEnStorage();
+            localStorage.setItem('modalPasoLaDolce', '1');
+            setTimeout(() => {
+                document.getElementById('modal-cart').style.display = 'flex';
+                renderizarItemsModal();
+                irPaso(1);
+            }, 500);
+        }
+
         window.history.replaceState({}, document.title, window.location.pathname);
     }
 
@@ -128,7 +150,11 @@ async function inicializarApp() {
     cargarDatosClienteFormulario();
     actualizarUIFlotante();
     const pasoGuardado = localStorage.getItem('modalPasoLaDolce');
-    if (pasoGuardado && Object.keys(carrito).length > 0 && !itemCompartido) { document.getElementById('modal-cart').style.display = 'flex'; renderizarItemsModal(); irPaso(parseInt(pasoGuardado)); }
+    if (pasoGuardado && Object.keys(carrito).length > 0 && !itemCompartido && !recoverData) {
+        document.getElementById('modal-cart').style.display = 'flex';
+        renderizarItemsModal();
+        irPaso(parseInt(pasoGuardado));
+    }
 }
 
 // ==========================================
@@ -144,20 +170,17 @@ async function abrirModalProducto(nombre) {
     document.getElementById('det-nombre').innerText = prod.nombre;
     document.getElementById('det-precio').innerText = '$' + prod.precio;
 
-    // 1. Armamos la galería de imágenes
-    galeriaImagenes = [prod.img]; // La primera siempre es la portada
+    galeriaImagenes = [prod.img];
     if (prod.imagenesExtras && prod.imagenesExtras.length > 0) {
         galeriaImagenes = galeriaImagenes.concat(prod.imagenesExtras);
     }
 
-    // Inyectamos el slider en el HTML
     renderizarSlider();
 
     const contGustos = document.getElementById('contenedor-gustos');
     const listaGustos = document.getElementById('lista-gustos');
     const contenedorCantidad = document.querySelector('.det-qty-controls');
 
-    // 2. Cargamos los gustos de helado si corresponde
     if (prod.maxGustos && prod.maxGustos > 0) {
         contenedorCantidad.style.display = 'none';
         contGustos.style.display = 'block';
@@ -244,8 +267,8 @@ function renderizarSlider() {
 }
 
 function moverSlider(index) {
-    if (index < 0) index = sliderTotalFrames - 1; // Si va para atrás del 0, va a la última
-    if (index >= sliderTotalFrames) index = 0; // Si pasa de la última, vuelve al 0
+    if (index < 0) index = sliderTotalFrames - 1;
+    if (index >= sliderTotalFrames) index = 0;
 
     sliderActualIndex = index;
     const track = document.getElementById('slider-track');
@@ -253,14 +276,12 @@ function moverSlider(index) {
         track.style.transform = `translateX(-${index * 100}%)`;
     }
 
-    // Actualizar puntitos visuales
     const dots = document.querySelectorAll('.slider-dot');
     dots.forEach((d, i) => {
         if (i === index) d.classList.add('active');
         else d.classList.remove('active');
     });
 }
-// ==========================================
 
 function validarLimitesGusto(maximo) {
     const checks = document.querySelectorAll('.check-gusto');
@@ -285,7 +306,7 @@ function validarLimitesGusto(maximo) {
 function cerrarModalProducto() {
     document.getElementById('modal-producto').style.display = 'none';
     prodSeleccionadoDetalle = null;
-    galeriaImagenes = []; // Limpiamos la memoria
+    galeriaImagenes = [];
     window.history.pushState({}, '', window.location.pathname);
 }
 
@@ -448,7 +469,7 @@ function buscarGlobal(texto) {
         let cardClick = ''; let btnHtml = ''; let badgeStyle = ''; let imgStyle = ''; let cardStyle = '';
 
         if (item.activo) {
-            const funcionBotonAdd = (item.maxGustos > 0 || item.esPromo) ? `abrirModalProducto('${descLimpio}')` : `agregarAlCarrito('${descLimpio}', ${item.precio}, '${item.img}')`;
+            const funcionBotonAdd = (item.maxGustos > 0 || item.imagenesExtras.length > 0) ? `abrirModalProducto('${descLimpio}')` : `agregarAlCarrito('${descLimpio}', ${item.precio}, '${item.img}')`;
             cardClick = `onclick="abrirModalProducto('${descLimpio}')"`;
             btnHtml = `<button class="btn-add" onclick="event.stopPropagation(); ${funcionBotonAdd}">+</button>`;
         } else {
@@ -475,7 +496,6 @@ function buscarGlobal(texto) {
     listaBusqueda.innerHTML = htmlResultados;
 }
 
-// --- CARGADOR DE MENU WPO OPTIMIZADO ---
 async function cargarMenu() {
     try {
         window.todosLosProductos = [];
@@ -499,7 +519,7 @@ async function cargarMenu() {
                 const nombreLimpio = nombrePromo.replace(/'/g, "\\'");
                 const desc = "Todo lo que necesitás para armar el mejor plan.";
 
-                window.todosLosProductos.push({ id: idPromo, nombre: nombrePromo, desc: desc, precio: precioPromo, img: img, esPromo: true, maxGustos: 0, activo: true, categoria: "Promos" });
+                window.todosLosProductos.push({ id: idPromo, nombre: nombrePromo, desc: desc, precio: precioPromo, img: img, esPromo: true, maxGustos: 0, activo: true, categoria: "Promos", imagenesExtras: [] });
 
                 promosDOMHTML += `<div class="producto" onclick="abrirModalProducto('${nombreLimpio}')">
                     <div class="producto-info"><p class="desc" style="color: var(--primary); font-weight: bold; margin-bottom: 2px;">¡COMBO ESPECIAL!</p><h3>${nombrePromo}</h3><p class="desc">${desc}</p><div class="precio">$${precioPromo}</div></div>
@@ -573,8 +593,6 @@ async function cargarMenu() {
                 const catId = item.categoriaId !== undefined ? item.categoriaId : item.CategoriaId;
                 const limitGustos = item.maxGustos || item.MaxGustos || 0;
 
-                // --- CAMBIO CLAVE ACÁ PARA AGARRAR LA GALERÍA ---
-                // Si la API devuelve el listado de urls en "imagenesExtras", lo rescatamos. Si no, arr vacío.
                 const extras = item.imagenesExtras ? item.imagenesExtras : (item.ImagenesExtras ? item.ImagenesExtras : []);
 
                 const subtituloDesc = limitGustos > 0 ? "Helado artesanal" : "Sabor original";
@@ -592,7 +610,7 @@ async function cargarMenu() {
                     maxGustos: limitGustos,
                     activo: esActivo,
                     categoria: nombreCat,
-                    imagenesExtras: extras // <-- Guardamos la galería para el modal
+                    imagenesExtras: extras
                 });
 
                 const descLimpio = desc.replace(/'/g, "\\'");
@@ -707,7 +725,6 @@ function irPaso(paso) {
         btnSeguir.style.display = 'flex';
         titulo.innerText = 'Tu Carrito';
 
-        // Devolver el botón a la normalidad si viene de cancelar
         btnAccion.classList.remove('disabled');
         btnAccion.innerHTML = 'Continuar';
         btnAccion.setAttribute('onclick', 'irPaso(2)');
@@ -743,16 +760,31 @@ function verificarMetodoPago() {
 }
 
 async function enviarPedidoWhatsApp() {
-    const nombre = document.getElementById('cli-nombre').value.trim(); const direccion = document.getElementById('cli-direccion').value.trim(); const telefono = document.getElementById('cli-telefono').value.trim(); const pago = document.getElementById('cli-pago').value; const abonaCon = document.getElementById('cli-abona-con').value.trim();
-    if (!nombre || !direccion || !telefono) { return mostrarNotificacion("Por favor, completá todos tus datos (Nombre, Dirección y Teléfono)."); }
-    const t = calcularTotales();
-    if (pago === 'Efectivo') { if (!abonaCon) return mostrarNotificacion("Por favor, indicá con cuánto vas a pagar para poder enviarte el vuelto correcto."); if (parseFloat(abonaCon) < t.totalGeneral) return mostrarNotificacion('El monto a abonar ($' + abonaCon + ') debe ser mayor o igual al total de tu compra ($' + t.totalGeneral + ').'); }
+    const nombre = document.getElementById('cli-nombre').value.trim();
+    const direccion = document.getElementById('cli-direccion').value.trim();
+    const telefono = document.getElementById('cli-telefono').value.trim();
+    const pago = document.getElementById('cli-pago').value;
+    const abonaCon = document.getElementById('cli-abona-con').value.trim();
 
-    // --- SPINNER DE CARGA: Bloqueamos el botón para evitar doble clic ---
+    if (!nombre || !direccion || !telefono) {
+        return mostrarNotificacion("Por favor, completá todos tus datos (Nombre, Dirección y Teléfono).");
+    }
+
+    // FIX: Validación de número mínimo de caracteres
+    if (telefono.length < 8) {
+        return mostrarNotificacion("⚠️ Por favor, ingresá un número de teléfono válido (mínimo 8 dígitos).");
+    }
+
+    const t = calcularTotales();
+    if (pago === 'Efectivo') {
+        if (!abonaCon) return mostrarNotificacion("Por favor, indicá con cuánto vas a pagar para poder enviarte el vuelto correcto.");
+        if (parseFloat(abonaCon) < t.totalGeneral) return mostrarNotificacion('El monto a abonar ($' + abonaCon + ') debe ser mayor o igual al total de tu compra ($' + t.totalGeneral + ').');
+    }
+
     const btnAccion = document.getElementById('btn-accion-modal');
     btnAccion.classList.add('disabled');
     btnAccion.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Procesando...';
-    btnAccion.removeAttribute('onclick'); // Desactiva el clic
+    btnAccion.removeAttribute('onclick');
 
     const datosClienteBD = nombre + ' (' + direccion + ') | Tel: ' + telefono; let idRealPedido = pedidoEnEdicion;
     const urlFetch = pedidoEnEdicion ? `${baseURL}/Pedidos/${pedidoEnEdicion}` : `${baseURL}/Pedidos/Nuevo`; const metodoFetch = pedidoEnEdicion ? 'PUT' : 'POST';
@@ -760,7 +792,15 @@ async function enviarPedidoWhatsApp() {
     const detallesEnvio = [];
     for (let nombreEnCarrito in carrito) {
         const itemCar = carrito[nombreEnCarrito];
-        const prodRef = window.todosLosProductos.find(p => nombreEnCarrito.startsWith(p.nombre) || nombreEnCarrito.startsWith(p.nombre.replace(/'/g, "\\'")));
+
+        // --- BÚSQUEDA BLINDADA PARA EVITAR EL ERROR DEL CHOCOLATE ---
+        const prodRef = window.todosLosProductos.find(p => {
+            const nomLim = p.nombre.replace(/'/g, "\\'");
+            return nombreEnCarrito === p.nombre ||
+                nombreEnCarrito === nomLim ||
+                nombreEnCarrito.startsWith(p.nombre + " (") ||
+                nombreEnCarrito.startsWith(nomLim + " (");
+        });
 
         if (prodRef) {
             detallesEnvio.push({
@@ -770,6 +810,14 @@ async function enviarPedidoWhatsApp() {
                 Precio: itemCar.precio
             });
         }
+    }
+
+    // --- PROTECCIÓN EXTRA: Si el carrito se bugeó y está vacío, frenamos el envío ---
+    if (detallesEnvio.length === 0) {
+        btnAccion.classList.remove('disabled');
+        btnAccion.innerHTML = 'Enviar pedido';
+        btnAccion.setAttribute('onclick', 'enviarPedidoWhatsApp()');
+        return mostrarNotificacion("⚠️ Error leyendo los productos. Vaciá el carrito y volvé a agregarlos.");
     }
 
     try {
@@ -788,7 +836,6 @@ async function enviarPedidoWhatsApp() {
         if (res.ok) { const data = await res.json(); idRealPedido = data.id; }
         else {
             mostrarNotificacion("Hubo un error al comunicar con el servidor.");
-            // Si falla, rehabilitamos el botón
             btnAccion.classList.remove('disabled');
             btnAccion.innerHTML = 'Enviar pedido';
             btnAccion.setAttribute('onclick', 'enviarPedidoWhatsApp()');
@@ -819,11 +866,38 @@ async function enviarPedidoWhatsApp() {
     const numeroDestino = numeroWhatsAppDinamico !== "" ? numeroWhatsAppDinamico : "5491100000000";
     window.open('https://wa.me/' + numeroDestino + '?text=' + encodeURIComponent(texto), '_blank');
 
+    // --- ACÁ ESTÁ EL SECRETO: Ya NO borramos la memoria del cliente ---
     localStorage.removeItem('carritoLaDolce');
-    localStorage.removeItem('datosClienteLaDolce');
     localStorage.removeItem('modalPasoLaDolce');
     pedidoEnEdicion = null;
     window.location.reload();
 }
 
 window.onload = inicializarApp;
+
+
+// ==========================================
+// --- BLOQUEO DEFINITIVO DE ZOOM (IOS / ANDROID) ---
+// ==========================================
+
+// 1. Bloquea el "pellizco" (pinch-to-zoom) exclusivo de los iPhone/iPad
+document.addEventListener('gesturestart', function (e) {
+    e.preventDefault();
+});
+
+// 2. Bloquea el "doble toque" rápido que hace zoom en Android y iPhone
+let lastTouchEnd = 0;
+document.addEventListener('touchend', function (event) {
+    const now = (new Date()).getTime();
+    if (now - lastTouchEnd <= 300) {
+        event.preventDefault();
+    }
+    lastTouchEnd = now;
+}, false);
+
+// 3. Bloquea el pellizco general con dos dedos en la pantalla (touchmove)
+document.addEventListener('touchmove', function (event) {
+    if (event.scale !== 1 && event.scale !== undefined) {
+        event.preventDefault();
+    }
+}, { passive: false });

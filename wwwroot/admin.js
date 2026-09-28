@@ -22,6 +22,7 @@ let idCategoriaEditando = 0;
 let idArticuloEditando = 0;
 let idPromoEditando = 0;
 let idSaborEditando = 0;
+let jsonPedidosAnterior = "";
 
 // Constante para productos sin imagen (el SVG en línea que hicimos el otro día)
 const imgGris = 'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 width%3D%22150%22 height%3D%22150%22 viewBox%3D%220 0 150 150%22%3E%3Crect width%3D%22150%22 height%3D%22150%22 fill%3D%22%23eeeeee%22%2F%3E%3Ctext x%3D%2250%25%22 y%3D%2250%25%22 dominant-baseline%3D%22middle%22 text-anchor%3D%22middle%22 fill%3D%22%23999999%22 font-family%3D%22sans-serif%22 font-size%3D%2214%22 font-weight%3D%22bold%22%3ESin Foto%3C%2Ftext%3E%3C%2Fsvg%3E';
@@ -300,13 +301,34 @@ async function imprimirTicket(idPedido) {
 
 async function cargarPedidos() {
     try {
-        const res = await fetch(`${baseUrl}/Pedidos/Pendientes`);
+        // ACÁ ESTÁ EL FIX: Le metemos la hora actual para obligar a romper la caché del navegador
+        const res = await fetch(`${baseUrl}/Pedidos/Pendientes?_t=${new Date().getTime()}`);
         if (!res.ok) throw new Error("");
         const data = await res.json();
+
+        // Comparamos si hay cambios reales en los pedidos
+        const nuevoJson = JSON.stringify(data);
+        if (nuevoJson === jsonPedidosAnterior) return; // Si no hay nada nuevo, aborta silenciosamente
+
+        // Si ya teníamos datos antes, buscamos si hay un ID de pedido nuevo
+        if (jsonPedidosAnterior !== "") {
+            const dataAnterior = JSON.parse(jsonPedidosAnterior);
+            const idsAnteriores = dataAnterior.map(p => p.id);
+            const hayNuevos = data.some(p => !idsAnteriores.includes(p.id));
+
+            if (hayNuevos) {
+                mostrarNotificacion("🔔 ¡NUEVO PEDIDO RECIBIDO!", "success");
+            }
+        }
+        jsonPedidosAnterior = nuevoJson;
+
         const tbody = document.getElementById('tabla-pedidos');
         const msjSinPedidos = document.getElementById('mensaje-sin-pedidos');
         tbody.innerHTML = '';
-        if (data.length === 0) { msjSinPedidos.style.display = 'block'; } else {
+
+        if (data.length === 0) {
+            msjSinPedidos.style.display = 'block';
+        } else {
             msjSinPedidos.style.display = 'none';
             data.forEach(item => {
                 tbody.innerHTML += `<tr>
@@ -560,6 +582,9 @@ window.onload = () => {
 
     inicializarFiltrosHistorial();
     cargarHistorialPedidos();
+
+    // ---> ACÁ ESTÁ EL RELOJITO AUTOMÁTICO PARA ACTUALIZAR LOS PEDIDOS <---
+    setInterval(cargarPedidos, 15000);
 
     const btnCerrarSesion = document.getElementById('btnCerrarSesion');
     if (btnCerrarSesion) {
