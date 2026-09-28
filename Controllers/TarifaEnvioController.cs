@@ -3,9 +3,11 @@ using delivery.Models;
 using delivery.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace delivery.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class TarifaEnvioController : ControllerBase
@@ -16,7 +18,7 @@ namespace delivery.Controllers
         {
             _context = context;
         }
-
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<decimal>> GetTarifa()
         {

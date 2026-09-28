@@ -2,10 +2,18 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Dashboard Admin - La Dolce</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- CANDADO DE SEGURIDAD: Expulsa al login si no hay token -->
+    <script>
+                if (!localStorage.getItem('adminToken')) {
+                    window.location.href = '/login.html';
+                }
+    </script>
+
     <style>
         :root {
             --primary: #cc0000;
@@ -379,6 +387,7 @@
             padding: 15px;
             border-bottom: 1px solid var(--border);
             font-size: 0.95em;
+            vertical-align: middle;
         }
 
         th {
@@ -467,7 +476,6 @@
                 color: var(--primary);
             }
 
-        /* BUSCADOR TABLA VIP */
         .buscador-tabla {
             display: flex;
             align-items: center;
@@ -494,7 +502,106 @@
                 width: 100%;
             }
 
-        /* RESPONSIVE */
+        /* TOGGLE SWITCH ESTILO IOS */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+            .switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: .3s;
+            border-radius: 24px;
+        }
+
+            .slider:before {
+                position: absolute;
+                content: "";
+                height: 18px;
+                width: 18px;
+                left: 3px;
+                bottom: 3px;
+                background-color: white;
+                transition: .3s;
+                border-radius: 50%;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            }
+
+        input:checked + .slider {
+            background-color: var(--success);
+        }
+
+            input:checked + .slider:before {
+                transform: translateX(20px);
+            }
+
+        input:disabled + .slider {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* --- NOTIFICACIONES TOAST --- */
+        #toast-container {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .toast {
+            background: #333333;
+            color: #ffffff;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            animation: slideUpFade 0.3s ease forwards;
+        }
+
+            .toast.error {
+                background: var(--danger);
+            }
+
+            .toast.success {
+                background: var(--success);
+            }
+
+        @keyframes slideUpFade {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* RESPONSIVE (ARREGLO DE ZOOM Y TABLAS TIPO TARJETA) */
         @media (max-width: 1024px) {
             .dashboard-container {
                 grid-template-columns: 1fr;
@@ -551,14 +658,127 @@
                     width: 100%;
                 }
 
-            .main-content {
-                padding: 15px;
-            }
-
             .right-panel {
                 border-left: none;
                 border-top: 1px solid var(--border);
                 padding: 20px 15px;
+            }
+        }
+
+        /* CELULARES PUROS: MATAMOS EL ZOOM Y CONVERTIMOS TABLAS EN TARJETAS */
+        @media (max-width: 768px) {
+
+            /* 1. ANTI-ZOOM DEFINITIVO PARA CELULARES (IOS/ANDROID) */
+            input, select, textarea {
+                font-size: 16px !important; /* 16px exactos evita la lupa automática en iPhone */
+            }
+
+            body {
+                touch-action: manipulation; /* Apaga el zoom por doble toque rápido */
+            }
+
+            .main-content {
+                padding: 10px;
+            }
+
+            .card {
+                padding: 15px;
+                border-radius: 12px;
+            }
+
+            /* 2. TABLAS CONVERTIDAS EN TARJETAS (CERO SCROLL HORIZONTAL) */
+            .tabla-container {
+                border: none;
+                background: transparent;
+                overflow: visible !important;
+            }
+
+            table {
+                min-width: 100% !important; /* Ocupa exacto el ancho de la pantalla */
+                background: transparent;
+            }
+
+            thead {
+                display: none; /* Ocultamos los títulos de las columnas (Fecha, Cliente, etc) */
+            }
+
+            tbody tr {
+                display: flex;
+                flex-direction: column;
+                background: var(--white);
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                margin-bottom: 15px;
+                padding: 12px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            }
+
+            tbody td {
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
+                padding: 8px 0;
+                border-bottom: 1px dashed #e5e7eb;
+                text-align: left;
+                width: 100%;
+                gap: 10px;
+            }
+                /* El último TD (donde están los botones de acción) va abajo de todo y sin borde */
+                tbody td:last-child {
+                    border-bottom: none;
+                    padding-top: 12px;
+                    padding-bottom: 0;
+                    gap: 8px;
+                    flex-wrap: wrap; /* Si hay muchos botones, bajan solos */
+                }
+
+            /* Ajustes estéticos menores para los elementos en celular */
+            td img {
+                width: 45px !important;
+                height: 45px !important;
+                margin-right: 10px;
+            }
+
+            .btn-editar, .btn-borrar, .btn-guardar {
+                padding: 8px 14px;
+                font-size: 0.9rem;
+            }
+
+            .switch {
+                width: 40px;
+                height: 22px;
+            }
+
+            .slider:before {
+                height: 16px;
+                width: 16px;
+                left: 3px;
+                bottom: 3px;
+            }
+
+            input:checked + .slider:before {
+                transform: translateX(18px);
+            }
+        }
+
+        /* --- ESTILOS DE IMPRESIÓN (TICKET 78mm) --- */
+        @media print {
+            body > *:not(#ticket-impresion) {
+                display: none !important;
+            }
+
+            #ticket-impresion {
+                display: block !important;
+                width: 78mm;
+                margin: 0;
+                padding: 5px;
+                font-family: 'Courier New', Courier, monospace;
+                color: black;
+            }
+
+            @page {
+                margin: 0;
+                size: 78mm auto;
             }
         }
     </style>
@@ -569,7 +789,7 @@
         <!-- BARRA DE NAVEGACIÓN -->
         <aside class="sidebar">
             <div class="sidebar-logo">
-                <img src="Gemini_Generated_Image_s0p106s0p106s0p1 (1).jfif" alt="Logo La Dolce">
+                <img src="ladolce.png" alt="Logo La Dolce">
                 <span>Admin</span>
             </div>
             <div class="menu-label">Principal</div>
@@ -582,7 +802,6 @@
             <a class="nav-item" id="nav-promos" onclick="cambiarVista('vista-promos', this)"><i class="fas fa-star"></i> Promociones</a>
             <a class="nav-item" id="nav-categorias" onclick="cambiarVista('vista-categorias', this)"><i class="fas fa-tags"></i> Categorías</a>
             <a class="nav-item" id="nav-rubros" onclick="cambiarVista('vista-rubros', this)"><i class="fas fa-layer-group"></i> Rubros</a>
-            <a class="nav-item" id="nav-banners" onclick="cambiarVista('vista-banners', this)"><i class="fas fa-image"></i> Banners</a>
         </aside>
 
         <!-- CONTENIDO PRINCIPAL -->
@@ -592,6 +811,8 @@
                 <div class="admin-profile">
                     <div class="avatar"><i class="fas fa-user-shield"></i></div>
                     <span>Admin</span>
+                    <!-- BOTÓN DE CERRAR SESIÓN -->
+                    <button id="btnCerrarSesion" class="btn-borrar" style="margin-left: 15px; font-size: 0.85rem; padding: 6px 12px;" onclick="localStorage.removeItem('adminToken'); window.location.href='/login.html';"><i class="fas fa-sign-out-alt"></i> Salir</button>
                 </div>
             </div>
 
@@ -645,6 +866,7 @@
                 <!-- VISTA: PEDIDOS -->
                 <div id="vista-pedidos" class="vista-seccion">
                     <div class="header-seccion"><h1>Bandeja de Entrada</h1></div>
+
                     <div class="card">
                         <h3><i class="fas fa-clock"></i> Pedidos Pendientes</h3>
                         <div class="tabla-container">
@@ -653,6 +875,46 @@
                                 <tbody id="tabla-pedidos"></tbody>
                             </table>
                             <p id="mensaje-sin-pedidos" style="text-align: center; color: var(--text-muted); padding: 20px; display: none;">No hay pedidos pendientes.</p>
+                        </div>
+                    </div>
+
+                    <!-- NUEVA CARD: HISTORIAL DE PEDIDOS -->
+                    <div class="card" style="margin-top: 30px;">
+                        <div class="card-header-flex">
+                            <h3><i class="fas fa-history"></i> Historial de Pedidos</h3>
+                            <div style="display: flex; gap: 10px;">
+                                <!-- Selector de Mes -->
+                                <select id="select-mes-historial" style="width: auto; padding: 6px 12px; font-weight: bold;" onchange="cargarHistorialPedidos()">
+                                    <option value="1">Enero</option>
+                                    <option value="2">Febrero</option>
+                                    <option value="3">Marzo</option>
+                                    <option value="4">Abril</option>
+                                    <option value="5">Mayo</option>
+                                    <option value="6">Junio</option>
+                                    <option value="7">Julio</option>
+                                    <option value="8">Agosto</option>
+                                    <option value="9">Septiembre</option>
+                                    <option value="10">Octubre</option>
+                                    <option value="11">Noviembre</option>
+                                    <option value="12">Diciembre</option>
+                                </select>
+                                <!-- Selector de Año (se llena solo con JS) -->
+                                <select id="select-anio-historial" style="width: auto; padding: 6px 12px; font-weight: bold;" onchange="cargarHistorialPedidos()"></select>
+                            </div>
+                        </div>
+                        <div class="tabla-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Cliente (Info)</th>
+                                        <th>Estado</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-historial-pedidos"></tbody>
+                            </table>
+                            <p id="mensaje-sin-historial" style="text-align: center; color: var(--text-muted); padding: 20px; display: none;">No hay pedidos registrados en este período.</p>
                         </div>
                     </div>
                 </div>
@@ -669,7 +931,7 @@
                             <select id="categoriaArticulo"><option value="">Seleccioná...</option></select>
                         </div>
 
-                        <!-- LÍMITE DE GUSTOS (OCULTO POR DEFECTO) -->
+                        <!-- LÍMITE DE GUSTOS -->
                         <div class="form-group" id="contenedor-limite-gustos" style="display: none; background: #fff5f5; padding: 15px; border-radius: 8px; border: 1px solid #fecaca;">
                             <label style="color: var(--primary);"><i class="fas fa-ice-cream"></i> Límite de Sabores permitidos:</label>
                             <input type="number" id="maxGustos" value="0" min="0">
@@ -689,7 +951,7 @@
                         <button class="btn-guardar btn-cancelar" id="btn-cancelar-articulo" onclick="cancelarEdicionArticulo()">Cancelar Edición</button>
                         <p id="mensajeArticulo" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
 
-                        <!-- NUEVO: BUSCADOR DE PRODUCTOS VIP -->
+                        <!-- BUSCADOR DE PRODUCTOS VIP -->
                         <div class="buscador-tabla">
                             <i class="fas fa-search"></i>
                             <input type="text" id="inputBuscarProducto" placeholder="Buscar producto por nombre..." onkeyup="filtrarTablaProductos()">
@@ -697,7 +959,7 @@
 
                         <div class="tabla-container">
                             <table id="tabla-html-productos">
-                                <thead><tr><th>Descripción</th><th>Precio</th><th>Acción</th></tr></thead>
+                                <thead><tr><th style="width: 70px;">Img</th><th>Descripción</th><th>Precio</th><th>Estado</th><th>Acción</th></tr></thead>
                                 <tbody id="tabla-articulos"></tbody>
                             </table>
                         </div>
@@ -713,7 +975,8 @@
                             <label>Nombre del Sabor:</label>
                             <input type="text" id="nombreSabor" placeholder="Ej: Dulce de Leche Granizado">
                         </div>
-                        <div class="form-group">
+
+                        <div class="form-group" style="display: none;">
                             <label>Estado (Stock):</label>
                             <select id="stockSabor">
                                 <option value="true">✅ Disponible (En Stock)</option>
@@ -726,7 +989,7 @@
                         <p id="mensajeSabor" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
 
                         <div class="tabla-container">
-                            <table><thead><tr><th>Nombre del Sabor</th><th>Estado</th><th>Acción</th></tr></thead><tbody id="tabla-sabores"></tbody></table>
+                            <table><thead><tr><th>Nombre del Sabor</th><th>Estado (Stock)</th><th>Acción</th></tr></thead><tbody id="tabla-sabores"></tbody></table>
                         </div>
                     </div>
                 </div>
@@ -749,7 +1012,7 @@
                         <p id="mensajePromo" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
 
                         <div class="tabla-container">
-                            <table><thead><tr><th>Nombre</th><th>Precio</th><th>Acción</th></tr></thead><tbody id="tabla-promos"></tbody></table>
+                            <table><thead><tr><th style="width: 70px;">Img</th><th>Nombre</th><th>Precio</th><th>Acción</th></tr></thead><tbody id="tabla-promos"></tbody></table>
                         </div>
                     </div>
                 </div>
@@ -779,27 +1042,19 @@
                             <label>Pertenece al Rubro:</label>
                             <select id="rubroCategoria"><option value="">Seleccioná...</option></select>
                         </div>
+
+                        <!-- CAMPO PARA SUBIR IMAGEN FÍSICA -->
+                        <div class="form-group">
+                            <label>Imagen del Banner (Opcional, formato 2:1 recomendado):</label>
+                            <input type="file" id="imgCategoria" accept="image/*">
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Recomendado: 600x300px. Si no subes nada, se usará el color por defecto.</p>
+                        </div>
+
                         <button class="btn-guardar" id="btn-submit-categoria" onclick="guardarCategoria()" style="max-width: 200px;">Guardar Categoría</button>
                         <button class="btn-guardar btn-cancelar" id="btn-cancelar-categoria" onclick="cancelarEdicionCategoria()" style="max-width: 200px;">Cancelar</button>
                         <p id="mensajeCategoria" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
                         <div class="tabla-container">
                             <table><thead><tr><th>Nombre</th><th>Acción</th></tr></thead><tbody id="tabla-categorias"></tbody></table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- VISTA: BANNERS -->
-                <div id="vista-banners" class="vista-seccion">
-                    <div class="header-seccion"><h1>Gestión de Banners</h1></div>
-                    <div class="card">
-                        <h3><i class="fas fa-image"></i> Nuevo Banner Principal</h3>
-                        <div class="form-group"><label>Título:</label><input type="text" id="tituloBanner"></div>
-                        <div class="form-group"><label>Subtítulo:</label><input type="text" id="subtituloBanner"></div>
-                        <div class="form-group"><label>Color de Fondo:</label><input type="color" id="colorBanner" value="#cc0000" style="height:50px; padding:2px;"></div>
-                        <button class="btn-guardar" onclick="guardarBanner()" style="max-width: 200px;">Guardar Banner</button>
-                        <p id="mensajeBanner" style="font-weight:bold; margin-top:10px; min-height: 20px;"></p>
-                        <div class="tabla-container">
-                            <table><thead><tr><th>Textos</th><th>Color Base</th><th>Acción</th></tr></thead><tbody id="tabla-banners"></tbody></table>
                         </div>
                     </div>
                 </div>
@@ -815,332 +1070,68 @@
             </div>
             <div class="info-panel">
                 <h3><i class="fas fa-store" style="color: var(--primary);"></i> Datos del Local</h3>
-                <div class="form-group"><label style="font-size: 0.8rem;"><i class="fab fa-whatsapp" style="color:#25D366;"></i> WhatsApp:</label><input type="text" id="config-wpp" placeholder="Ej: 5491122334455" style="padding: 8px;"></div>
-                <div class="form-group"><label style="font-size: 0.8rem;"><i class="fab fa-instagram" style="color:#E1306C;"></i> Instagram (URL):</label><input type="text" id="config-ig" placeholder="https://instagram.com/..." style="padding: 8px;"></div>
-                <div class="form-group"><label style="font-size: 0.8rem;"><i class="fab fa-facebook" style="color:#1877F2;"></i> Facebook (URL):</label><input type="text" id="config-fb" placeholder="https://facebook.com/..." style="padding: 8px;"></div>
-                <div class="form-group"><label style="font-size: 0.8rem;"><i class="fas fa-map-marked-alt text-muted"></i> Maps (URL):</label><input type="text" id="config-maps" placeholder="https://maps.google.com/..." style="padding: 8px;"></div>
-                <div class="form-group"><label style="font-size: 0.8rem;"><i class="fas fa-university text-muted"></i> Alias Transferencia:</label><input type="text" id="config-alias" placeholder="Ej: LADOLCE.DELIVERY" style="padding: 8px;"></div>
+                <div class="form-group">
+                    <label style="font-size: 0.8rem;"><i class="fab fa-whatsapp" style="color:#25D366;"></i> WhatsApp:</label>
+                    <input type="text" id="config-wpp" placeholder="Ej: 5491122334455" style="padding: 8px;">
+                </div>
+                <div class="form-group">
+                    <label style="font-size: 0.8rem;"><i class="fab fa-facebook" style="color:#1877F2;"></i> Facebook (URL):</label>
+                    <input type="text" id="config-fb" placeholder="https://facebook.com/..." style="padding: 8px;">
+                </div>
+                <div class="form-group">
+                    <label style="font-size: 0.8rem;"><i class="fas fa-university text-muted"></i> Alias Transferencia:</label>
+                    <input type="text" id="config-alias" placeholder="Ej: LADOLCE.DELIVERY" style="padding: 8px;">
+                </div>
                 <button class="btn-guardar" onclick="guardarConfigLocal()" style="padding: 10px;">Actualizar Datos</button>
                 <p id="mensaje-config" style="font-weight:bold; margin-top:10px; min-height: 20px; font-size: 0.85rem; text-align:center;"></p>
             </div>
         </aside>
     </div>
+    <!-- MODAL DE CONFIRMACIÓN CUSTOM -->
+    <div class="modal-overlay" id="modal-confirm-custom" style="z-index: 3000; display: none; align-items: center; justify-content: center;">
+        <div class="modal-content" style="height: auto; max-height: 90vh; width: 90%; max-width: 350px; border-radius: 16px; padding: 25px; text-align: center; overflow: visible;">
+            <div style="font-size: 3rem; color: var(--primary); margin-bottom: 10px;">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3 style="margin: 0 0 10px 0; font-size: 1.2rem; color: var(--text-main);">¿Estás seguro?</h3>
+            <p id="confirm-custom-msj" style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px; line-height: 1.4;"></p>
+            <div style="display: flex; gap: 10px; width: 100%;">
+                <button class="btn-secundario" id="btn-confirm-no" style="margin: 0; color: var(--text-muted); border-color: var(--border);">Cancelar</button>
+                <button class="btn-principal" id="btn-confirm-si" style="margin: 0; background: var(--primary);">Aceptar</button>
+            </div>
+        </div>
+    </div>
+    <!-- CONTENEDOR PARA NOTIFICACIONES TOAST -->
+    <div id="toast-container"></div>
 
-    <script>
-        const baseUrl = '/api';
-        let chartInstancia = null;
+    <!-- PLANTILLA OCULTA PARA EL TICKET -->
+    <div id="ticket-impresion" style="display: none;">
+        <div style="text-align: center; margin-bottom: 10px;">
+            <h2 style="margin: 0; font-size: 18px; font-weight: bold;">LA DOLCE</h2>
+            <p style="margin: 0; font-size: 12px;">DETALLE DE SU CONSUMICIÓN</p>
+            <p style="margin: 0; font-size: 10px;">(comprobante no válido como factura)</p>
+        </div>
+        <hr style="border-top: 1px dashed black; margin: 8px 0;">
+        <div style="font-size: 12px; margin-bottom: 8px; line-height: 1.4;" id="ticket-info-cliente">
+            <!-- Se inyecta desde JS -->
+        </div>
+        <hr style="border-top: 1px dashed black; margin: 8px 0;">
+        <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="text-align: left; padding-bottom: 5px;">Descripción</th>
+                    <th style="text-align: center; padding-bottom: 5px;">Cant</th>
+                    <th style="text-align: right; padding-bottom: 5px;">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody id="ticket-items">
+                <!-- Se inyectan los productos desde JS -->
+            </tbody>
+        </table>
+        <hr style="border-top: 1px dashed black; margin: 8px 0;">
+        <h3 style="text-align: right; margin: 5px 0; font-size: 16px;" id="ticket-total">Total: $0</h3>
+    </div>
 
-        let idRubroEditando = 0;
-        let idCategoriaEditando = 0;
-        let idArticuloEditando = 0;
-        let idPromoEditando = 0;
-        let idSaborEditando = 0;
-
-        function cambiarVista(idVista, elementoMenu) {
-            document.querySelectorAll('.vista-seccion').forEach(vista => vista.classList.remove('activa'));
-            document.getElementById(idVista).classList.add('activa');
-            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-            elementoMenu.classList.add('active');
-        }
-
-        function leerFoto(input) {
-            return new Promise((resolve) => {
-                if (!input.files || input.files.length === 0) { resolve(""); return; }
-                const reader = new FileReader();
-                reader.onload = (e) => resolve(e.target.result);
-                reader.readAsDataURL(input.files[0]);
-            });
-        }
-
-        // --- LÓGICA DE BÚSQUEDA EN TIEMPO REAL ---
-        function filtrarTablaProductos() {
-            const textoBuscado = document.getElementById('inputBuscarProducto').value.toLowerCase();
-            const filas = document.querySelectorAll('#tabla-html-productos tbody tr');
-
-            filas.forEach(fila => {
-                const celdaNombre = fila.querySelector('td'); // La primera columna es "Descripción"
-                if (celdaNombre) {
-                    const nombreProducto = celdaNombre.textContent.toLowerCase();
-                    if (nombreProducto.includes(textoBuscado)) {
-                        fila.style.display = '';
-                    } else {
-                        fila.style.display = 'none';
-                    }
-                }
-            });
-        }
-
-        document.getElementById('categoriaArticulo').addEventListener('change', function () {
-            const indexSeleccionado = this.selectedIndex;
-            if (indexSeleccionado === -1) return;
-
-            const categoriaTexto = this.options[indexSeleccionado].text.toLowerCase();
-            const divGustos = document.getElementById('contenedor-limite-gustos');
-            const inputGustos = document.getElementById('maxGustos');
-
-            if (categoriaTexto.includes('helad') || categoriaTexto.includes('pote') || categoriaTexto.includes('kilo')) {
-                divGustos.style.display = 'block';
-            } else {
-                divGustos.style.display = 'none';
-                inputGustos.value = 0;
-            }
-        });
-
-        function agregarInputImagen(url = '') {
-            const container = document.getElementById('contenedor-imagenes-extra');
-            const div = document.createElement('div');
-            div.className = 'input-rapido';
-            div.style.marginBottom = '10px';
-            div.style.maxWidth = '100%';
-            div.style.alignItems = 'center';
-
-            if (url !== '') {
-                div.innerHTML = `
-                                <img src="${url}" style="height: 40px; width: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #ccc;">
-                                <input type="hidden" class="imagen-extra-existente" value="${url}">
-                                <button class="btn-borrar" type="button" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
-                            `;
-            } else {
-                div.innerHTML = `
-                                <input type="file" class="form-control imagen-extra-file" accept="image/*">
-                                <button class="btn-borrar" type="button" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
-                            `;
-            }
-            container.appendChild(div);
-        }
-
-        async function cargarArticulos() {
-            try {
-                const res = await fetch(`${baseUrl}/Articulos`);
-                const data = await res.json();
-                document.getElementById('metric-prod').innerText = data.length;
-                const tbody = document.getElementById('tabla-articulos');
-                const cajaPromos = document.getElementById('lista-articulos-promo');
-                tbody.innerHTML = ''; cajaPromos.innerHTML = '';
-
-                data.forEach(item => {
-                    const id = item.codArticulo !== undefined ? item.codArticulo : item.CodArticulo;
-                    tbody.innerHTML += `<tr>
-                                        <td><strong>${item.descripcion}</strong></td>
-                                        <td>$${item.costo}</td>
-                                        <td>
-                                            <button class="btn-editar" onclick="prepararEdicionArticulo(${id})"><i class="fas fa-pen"></i></button>
-                                            <button class="btn-borrar" onclick="eliminarArticulo(${id})"><i class="fas fa-trash"></i></button>
-                                        </td>
-                                    </tr>`;
-                    cajaPromos.innerHTML += `<div class="fila-articulo-promo"><span>${item.descripcion}</span><input type="number" min="0" value="0" data-id="${id}" class="cant-articulo-promo"></div>`;
-                });
-            } catch (e) { }
-        }
-
-        async function prepararEdicionArticulo(id) {
-            try {
-                const res = await fetch(`${baseUrl}/Articulos/${id}`);
-                const articulo = await res.json();
-
-                idArticuloEditando = id;
-                document.getElementById('descArticulo').value = articulo.descripcion;
-                document.getElementById('costoArticulo').value = articulo.costo;
-                document.getElementById('categoriaArticulo').value = articulo.categoriaId;
-
-                const evt = new Event('change');
-                document.getElementById('categoriaArticulo').dispatchEvent(evt);
-
-                document.getElementById('maxGustos').value = articulo.maxGustos || 0;
-
-                const container = document.getElementById('contenedor-imagenes-extra');
-                container.innerHTML = '';
-                if (articulo.imagenesExtras && articulo.imagenesExtras.length > 0) {
-                    articulo.imagenesExtras.forEach(url => agregarInputImagen(url));
-                }
-
-                document.getElementById('titulo-form-articulo').innerHTML = '<i class="fas fa-pen"></i> Editando Producto';
-                document.getElementById('btn-submit-articulo').innerText = 'Actualizar Producto';
-                document.getElementById('btn-cancelar-articulo').style.display = 'block';
-                window.scrollTo(0, 0);
-            } catch (e) { alert("Error al cargar detalles del producto"); }
-        }
-
-        function cancelarEdicionArticulo() {
-            idArticuloEditando = 0;
-            document.getElementById('descArticulo').value = '';
-            document.getElementById('costoArticulo').value = '';
-            document.getElementById('imgArticulo').value = '';
-            document.getElementById('categoriaArticulo').value = '';
-
-            document.getElementById('contenedor-limite-gustos').style.display = 'none';
-            document.getElementById('maxGustos').value = '0';
-            document.getElementById('contenedor-imagenes-extra').innerHTML = '';
-
-            document.getElementById('titulo-form-articulo').innerHTML = '<i class="fas fa-plus-circle"></i> Nuevo Producto';
-            document.getElementById('btn-submit-articulo').innerText = 'Guardar Producto';
-            document.getElementById('btn-cancelar-articulo').style.display = 'none';
-        }
-
-        async function guardarArticulo() {
-            const desc = document.getElementById('descArticulo').value;
-            const costo = document.getElementById('costoArticulo').value;
-            const inputImg = document.getElementById('imgArticulo');
-            const catId = document.getElementById('categoriaArticulo').value;
-            const msj = document.getElementById('mensajeArticulo');
-
-            if (!desc || !costo || !catId) {
-                msj.innerText = "⚠️ Completá los datos requeridos";
-                return;
-            }
-
-            const gustosLimit = parseInt(document.getElementById('maxGustos').value) || 0;
-            const galeriaUrls = [];
-
-            document.querySelectorAll('.imagen-extra-existente').forEach(hiddenInput => {
-                galeriaUrls.push(hiddenInput.value);
-            });
-
-            const inputsNuevos = document.querySelectorAll('.imagen-extra-file');
-            for (const input of inputsNuevos) {
-                if (input.files && input.files.length > 0) {
-                    const fotoExtraBase64 = await leerFoto(input);
-                    if (fotoExtraBase64) galeriaUrls.push(fotoExtraBase64);
-                }
-            }
-
-            const fotoBase64 = await leerFoto(inputImg);
-
-            const payload = {
-                descripcion: desc,
-                urlImagen: fotoBase64,
-                costo: parseFloat(costo),
-                stock: 0, stockMinimo: 0,
-                categoriaId: parseInt(catId),
-                maxGustos: gustosLimit,
-                imagenesExtras: galeriaUrls
-            };
-
-            const url = idArticuloEditando > 0 ? `${baseUrl}/Articulos/${idArticuloEditando}` : `${baseUrl}/Articulos`;
-            const metodo = idArticuloEditando > 0 ? 'PUT' : 'POST';
-
-            try {
-                const res = await fetch(url, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (res.ok) {
-                    msj.innerText = "✅ Guardado"; msj.style.color = "var(--success)";
-                    cancelarEdicionArticulo();
-                    cargarArticulos();
-                    setTimeout(() => msj.innerText = "", 3000);
-                } else {
-                    msj.innerText = "❌ Error al guardar"; msj.style.color = "var(--danger)";
-                }
-            } catch (e) { msj.innerText = "❌ Error de conexión"; msj.style.color = "var(--danger)"; }
-        }
-
-        async function eliminarArticulo(id) { if (confirm("¿Eliminar producto?")) { await fetch(`${baseUrl}/Articulos/${id}`, { method: 'DELETE' }); cargarArticulos(); } }
-
-        async function cargarSabores() {
-            try {
-                const res = await fetch(`${baseUrl}/Gustos`);
-                const data = await res.json();
-                const tbody = document.getElementById('tabla-sabores');
-                tbody.innerHTML = '';
-
-                data.forEach(item => {
-                    const id = item.id !== undefined ? item.id : item.Id;
-                    const nombre = item.nombre !== undefined ? item.nombre : item.Nombre;
-                    const hayStock = item.hayStock !== undefined ? item.hayStock : item.HayStock;
-                    const nombreSeguro = nombre.replace(/'/g, "\\'");
-
-                    const badgeStr = hayStock
-                        ? `<span style="background:var(--success); color:white; padding:4px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Disponible</span>`
-                        : `<span style="background:var(--text-muted); color:white; padding:4px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Agotado</span>`;
-
-                    tbody.innerHTML += `<tr>
-                                <td><strong>${nombre}</strong></td>
-                                <td>${badgeStr}</td>
-                                <td>
-                                    <button class="btn-editar" onclick="prepararEdicionSabor(${id}, '${nombreSeguro}', ${hayStock})"><i class="fas fa-pen"></i></button>
-                                </td>
-                            </tr>`;
-                });
-            } catch (e) { }
-        }
-
-        function prepararEdicionSabor(id, nombre, hayStock) {
-            idSaborEditando = id;
-            document.getElementById('nombreSabor').value = nombre;
-            document.getElementById('stockSabor').value = hayStock ? "true" : "false";
-            document.getElementById('titulo-form-sabor').innerHTML = '<i class="fas fa-pen"></i> Editando Sabor';
-            document.getElementById('btn-submit-sabor').innerText = 'Actualizar Sabor';
-            document.getElementById('btn-cancelar-sabor').style.display = 'block';
-            window.scrollTo(0, 0);
-        }
-
-        function cancelarEdicionSabor() {
-            idSaborEditando = 0;
-            document.getElementById('nombreSabor').value = '';
-            document.getElementById('stockSabor').value = 'true';
-            document.getElementById('titulo-form-sabor').innerHTML = '<i class="fas fa-ice-cream"></i> Nuevo Sabor';
-            document.getElementById('btn-submit-sabor').innerText = 'Guardar Sabor';
-            document.getElementById('btn-cancelar-sabor').style.display = 'none';
-        }
-
-        async function guardarSabor() {
-            const nombre = document.getElementById('nombreSabor').value;
-            const hayStock = document.getElementById('stockSabor').value === 'true';
-            const msj = document.getElementById('mensajeSabor');
-
-            if (!nombre) return;
-
-            const payload = { id: idSaborEditando, nombre: nombre, hayStock: hayStock };
-            const url = idSaborEditando > 0 ? `${baseUrl}/Gustos/${idSaborEditando}` : `${baseUrl}/Gustos`;
-            const metodo = idSaborEditando > 0 ? 'PUT' : 'POST';
-
-            try {
-                const res = await fetch(url, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (res.ok) {
-                    msj.innerText = "✅ Guardado con éxito"; msj.style.color = "var(--success)";
-                    cancelarEdicionSabor();
-                    cargarSabores();
-                    setTimeout(() => msj.innerText = "", 3000);
-                }
-            } catch (e) { msj.innerText = "❌ Error"; msj.style.color = "var(--danger)"; }
-        }
-
-        async function cargarPedidos() { try { const res = await fetch(`${baseUrl}/Pedidos/Pendientes`); if (!res.ok) throw new Error(""); const data = await res.json(); const tbody = document.getElementById('tabla-pedidos'); const msjSinPedidos = document.getElementById('mensaje-sin-pedidos'); tbody.innerHTML = ''; if (data.length === 0) { msjSinPedidos.style.display = 'block'; } else { msjSinPedidos.style.display = 'none'; data.forEach(item => { tbody.innerHTML += `<tr><td>${item.fecha}</td><td><strong>${item.cliente}</strong></td><td style="font-weight: bold; color: var(--text-main);">$${item.total}</td><td id="acciones-pedido-${item.id}"><button class="btn-guardar" style="width: auto; padding: 6px 12px; font-size: 0.85rem; margin-right: 5px; margin-bottom: 5px;" onclick="cambiarEstadoPedido(${item.id}, 'Completado')"><i class="fas fa-check"></i></button><button class="btn-borrar" style="margin-bottom: 5px;" onclick="cambiarEstadoPedido(${item.id}, 'Cancelado')"><i class="fas fa-times"></i></button></td></tr>`; }); } } catch (e) { } }
-        async function cambiarEstadoPedido(idPedido, nuevoEstado) { if (confirm(`¿Marcar este pedido como ${nuevoEstado}?`)) { try { await fetch(`${baseUrl}/Pedidos/${idPedido}/Estado`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(nuevoEstado) }); cargarEstadisticas(); cargarPedidos(); } catch (e) { } } }
-        async function cargarEstadisticas() { const select = document.getElementById('selectYear'); if (select.options.length === 0) { const anioActual = new Date().getFullYear(); for (let i = anioActual; i >= 2026; i--) { const option = document.createElement('option'); option.value = i; option.text = i; select.appendChild(option); } } const anioSeleccionado = select.value; try { const res = await fetch(`${baseUrl}/Estadisticas/Ventas?anio=${anioSeleccionado}`); if (!res.ok) throw new Error("Error"); const data = await res.json(); const nombresMeses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']; const labels = data.map(d => nombresMeses[d.mes - 1] || d.mes); const totales = data.map(d => d.total); const ctx = document.getElementById('graficoVentas').getContext('2d'); if (chartInstancia) { chartInstancia.destroy(); } chartInstancia = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: `Facturación ${anioSeleccionado} ($)`, data: totales, backgroundColor: '#cc0000', borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } } }); } catch (e) { } }
-        async function cargarConfigLocal() { try { const res = await fetch(`${baseUrl}/Configuracion`); if (res.ok) { const data = await res.json(); if (data.whatsApp) document.getElementById('config-wpp').value = data.whatsApp; if (data.instagram) document.getElementById('config-ig').value = data.instagram; if (data.facebook) document.getElementById('config-fb').value = data.facebook; if (data.googleMaps) document.getElementById('config-maps').value = data.googleMaps; if (data.alias) document.getElementById('config-alias').value = data.alias; } } catch (e) { } }
-        async function guardarConfigLocal() { const payload = { whatsApp: document.getElementById('config-wpp').value, instagram: document.getElementById('config-ig').value, facebook: document.getElementById('config-fb').value, googleMaps: document.getElementById('config-maps').value, alias: document.getElementById('config-alias').value }; const msj = document.getElementById('mensaje-config'); try { const res = await fetch(`${baseUrl}/Configuracion`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); if (res.ok) { msj.innerText = "✅ Datos actualizados."; msj.style.color = "var(--success)"; } } catch (e) { msj.innerText = "❌ Error al guardar"; msj.style.color = "var(--danger)"; } setTimeout(() => msj.innerText = "", 3000); }
-        async function cargarEnvio() { try { const res = await fetch(`${baseUrl}/TarifaEnvio`); document.getElementById('input-envio').value = await res.json(); } catch (e) { } }
-        async function guardarEnvio() { const costo = document.getElementById('input-envio').value; const msj = document.getElementById('mensaje-envio'); if (!costo) return; try { const res = await fetch(`${baseUrl}/TarifaEnvio`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: costo }); if (res.ok) { msj.innerText = "✅ Tarifa actualizada."; msj.style.color = "var(--success)"; setTimeout(() => msj.innerText = "", 3000); } } catch (e) { } }
-        async function cargarRubros() { try { const res = await fetch(`${baseUrl}/Rubros`); const data = await res.json(); const tbody = document.getElementById('tabla-rubros'); const selectRubroCategoria = document.getElementById('rubroCategoria'); tbody.innerHTML = ''; selectRubroCategoria.innerHTML = '<option value="">Seleccioná...</option>'; data.forEach(item => { const id = item.codRubro !== undefined ? item.codRubro : item.CodRubro; const nombre = item.nombre !== undefined ? item.nombre : item.Nombre; const nombreSeguro = nombre.replace(/'/g, "\\'"); tbody.innerHTML += `<tr><td><strong>${nombre}</strong></td><td><button class="btn-editar" onclick="prepararEdicionRubro(${id}, '${nombreSeguro}')"><i class="fas fa-pen"></i></button><button class="btn-borrar" onclick="eliminarRubro(${id})"><i class="fas fa-trash"></i></button></td></tr>`; selectRubroCategoria.innerHTML += `<option value="${id}">${nombre}</option>`; }); } catch (e) { } }
-        function prepararEdicionRubro(id, nombre) { idRubroEditando = id; document.getElementById('nombreRubro').value = nombre; document.getElementById('titulo-form-rubro').innerHTML = '<i class="fas fa-pen"></i> Editando Rubro'; document.getElementById('btn-submit-rubro').innerText = 'Actualizar Rubro'; document.getElementById('btn-cancelar-rubro').style.display = 'block'; window.scrollTo(0, 0); }
-        function cancelarEdicionRubro() { idRubroEditando = 0; document.getElementById('nombreRubro').value = ''; document.getElementById('titulo-form-rubro').innerHTML = '<i class="fas fa-layer-group"></i> Nuevo Rubro'; document.getElementById('btn-submit-rubro').innerText = 'Guardar'; document.getElementById('btn-cancelar-rubro').style.display = 'none'; }
-        async function guardarRubro() { const nombre = document.getElementById('nombreRubro').value; const msj = document.getElementById('mensajeRubro'); if (!nombre) return; const payload = { codRubro: idRubroEditando, nombre: nombre }; const url = idRubroEditando > 0 ? `${baseUrl}/Rubros/${idRubroEditando}` : `${baseUrl}/Rubros`; const metodo = idRubroEditando > 0 ? 'PUT' : 'POST'; try { const res = await fetch(url, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); if (res.ok) { msj.innerText = "✅ Guardado con éxito"; msj.style.color = "var(--success)"; cancelarEdicionRubro(); cargarRubros(); setTimeout(() => msj.innerText = "", 3000); } } catch (e) { msj.innerText = "❌ Error"; msj.style.color = "var(--danger)"; } }
-        async function eliminarRubro(id) { if (confirm("¿Borrar rubro? Se borrarán las relaciones.")) { await fetch(`${baseUrl}/Rubros/${id}`, { method: 'DELETE' }); cargarRubros(); } }
-        async function cargarCategorias() { try { const res = await fetch(`${baseUrl}/Categorias`); const data = await res.json(); document.getElementById('metric-cat').innerText = data.length; const tbody = document.getElementById('tabla-categorias'); const selectArticulo = document.getElementById('categoriaArticulo'); tbody.innerHTML = ''; selectArticulo.innerHTML = '<option value="">Seleccioná...</option>'; data.forEach(item => { const id = item.codCategoria !== undefined ? item.codCategoria : item.CodCategoria; const nombre = item.nombre !== undefined ? item.nombre : item.Nombre; const codRubro = item.codRubro !== undefined ? item.codRubro : item.CodRubro; const nombreSeguro = nombre.replace(/'/g, "\\'"); tbody.innerHTML += `<tr><td><strong>${nombre}</strong></td><td><button class="btn-editar" onclick="prepararEdicionCategoria(${id}, '${nombreSeguro}', ${codRubro})"><i class="fas fa-pen"></i></button><button class="btn-borrar" onclick="eliminarCategoria(${id})"><i class="fas fa-trash"></i></button></td></tr>`; selectArticulo.innerHTML += `<option value="${id}">${nombre}</option>`; }); } catch (e) { } }
-        function prepararEdicionCategoria(id, nombre, codRubro) { idCategoriaEditando = id; document.getElementById('nombreCategoria').value = nombre; document.getElementById('rubroCategoria').value = codRubro || ""; document.getElementById('titulo-form-categoria').innerHTML = '<i class="fas fa-pen"></i> Editando Categoría'; document.getElementById('btn-submit-categoria').innerText = 'Actualizar Categoría'; document.getElementById('btn-cancelar-categoria').style.display = 'block'; window.scrollTo(0, 0); }
-        function cancelarEdicionCategoria() { idCategoriaEditando = 0; document.getElementById('nombreCategoria').value = ''; document.getElementById('rubroCategoria').value = ''; document.getElementById('titulo-form-categoria').innerHTML = '<i class="fas fa-tag"></i> Nueva Categoría'; document.getElementById('btn-submit-categoria').innerText = 'Guardar Categoría'; document.getElementById('btn-cancelar-categoria').style.display = 'none'; }
-        async function guardarCategoria() { const nombre = document.getElementById('nombreCategoria').value; const rubroId = document.getElementById('rubroCategoria').value; const msj = document.getElementById('mensajeCategoria'); if (!nombre || !rubroId || rubroId === "undefined" || rubroId === "") { msj.innerText = "⚠️ Completá el nombre y seleccioná un rubro"; msj.style.color = "var(--danger)"; setTimeout(() => msj.innerText = "", 3000); return; } const payload = { codCategoria: idCategoriaEditando, nombre: nombre, codRubro: parseInt(rubroId) }; const url = idCategoriaEditando > 0 ? `${baseUrl}/Categorias/${idCategoriaEditando}` : `${baseUrl}/Categorias`; const metodo = idCategoriaEditando > 0 ? 'PUT' : 'POST'; try { const res = await fetch(url, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); if (res.ok) { msj.innerText = "✅ Guardada"; msj.style.color = "var(--success)"; cancelarEdicionCategoria(); cargarCategorias(); setTimeout(() => msj.innerText = "", 3000); } else { msj.innerText = "❌ Error"; msj.style.color = "var(--danger)"; } } catch (e) { msj.innerText = "❌ Error de conexión"; msj.style.color = "var(--danger)"; } }
-        async function eliminarCategoria(id) { if (confirm("¿Borrar categoría?")) { await fetch(`${baseUrl}/Categorias/${id}`, { method: 'DELETE' }); cargarCategorias(); } }
-        async function cargarPromociones() { try { const res = await fetch(`${baseUrl}/Promos`); const data = await res.json(); document.getElementById('metric-promo').innerText = data.length; const tbody = document.getElementById('tabla-promos'); tbody.innerHTML = ''; data.forEach(item => { const id = item.codPromo !== undefined ? item.codPromo : item.CodPromo; tbody.innerHTML += `<tr><td><strong>${item.nombre}</strong></td><td>$${item.precioVenta}</td><td><button class="btn-editar" onclick="prepararEdicionPromo(${id})"><i class="fas fa-pen"></i></button><button class="btn-borrar" onclick="eliminarPromocion(${id})"><i class="fas fa-trash"></i></button></td></tr>`; }); } catch (e) { } }
-        async function prepararEdicionPromo(id) { try { const res = await fetch(`${baseUrl}/Promos/${id}`); const promo = await res.json(); idPromoEditando = id; document.getElementById('nombrePromo').value = promo.nombre; document.getElementById('costoPromo').value = promo.precioVenta; document.querySelectorAll('.cant-articulo-promo').forEach(input => input.value = 0); if (promo.detallePromos && promo.detallePromos.length > 0) { promo.detallePromos.forEach(det => { const input = document.querySelector(`.cant-articulo-promo[data-id='${det.codArticulo}']`); if (input) input.value = det.cantidad; }); } document.getElementById('titulo-form-promo').innerHTML = '<i class="fas fa-pen"></i> Editando Promoción'; document.getElementById('btn-submit-promo').innerText = 'Actualizar Promoción'; document.getElementById('btn-cancelar-promo').style.display = 'block'; window.scrollTo(0, 0); } catch (e) { alert("Error al cargar detalles de la promoción"); } }
-        function cancelarEdicionPromo() { idPromoEditando = 0; document.getElementById('nombrePromo').value = ''; document.getElementById('costoPromo').value = ''; document.getElementById('imgPromo').value = ''; document.querySelectorAll('.cant-articulo-promo').forEach(input => input.value = 0); document.getElementById('titulo-form-promo').innerHTML = '<i class="fas fa-star"></i> Nuevo Combo / Promo'; document.getElementById('btn-submit-promo').innerText = 'Guardar Promoción'; document.getElementById('btn-cancelar-promo').style.display = 'none'; }
-        async function guardarPromocion() { const nombre = document.getElementById('nombrePromo').value; const costo = document.getElementById('costoPromo').value; const inputImg = document.getElementById('imgPromo'); const msj = document.getElementById('mensajePromo'); if (!nombre || !costo) { msj.innerText = "⚠️ Faltan datos"; return; } const articulosSel = []; document.querySelectorAll('.cant-articulo-promo').forEach(input => { const cant = parseInt(input.value); if (cant > 0) articulosSel.push({ codArticulo: parseInt(input.getAttribute('data-id')), cantidad: cant }); }); if (articulosSel.length === 0) { msj.innerText = "⚠️ Seleccioná artículos para el combo"; return; } const fotoBase64 = await leerFoto(inputImg); const payload = { nombre: nombre, descripcion: "", categoria: "Promos", urlImagen: fotoBase64, precioVenta: parseFloat(costo), articulos: articulosSel }; const url = idPromoEditando > 0 ? `${baseUrl}/Promos/${idPromoEditando}` : `${baseUrl}/Promos`; const metodo = idPromoEditando > 0 ? 'PUT' : 'POST'; try { const res = await fetch(url, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); if (res.ok) { msj.innerText = "✅ Guardada"; msj.style.color = "var(--success)"; cancelarEdicionPromo(); cargarPromociones(); setTimeout(() => msj.innerText = "", 3000); } else { msj.innerText = "❌ Error"; msj.style.color = "var(--danger)"; } } catch (e) { msj.innerText = "❌ Error de conexión"; msj.style.color = "var(--danger)"; } }
-        async function eliminarPromocion(id) { if (confirm("¿Borrar promoción?")) { await fetch(`${baseUrl}/Promos/${id}`, { method: 'DELETE' }); cargarPromociones(); } }
-        async function cargarBanners() { try { const res = await fetch(`${baseUrl}/Banners`); const data = await res.json(); const tbody = document.getElementById('tabla-banners'); tbody.innerHTML = ''; data.forEach(item => { const id = item.codBanner !== undefined ? item.codBanner : item.CodBanner; tbody.innerHTML += `<tr><td><strong>${item.titulo}</strong><br><small>${item.subtitulo}</small></td><td><div style="width:30px;height:30px;background:${item.backgroundColor};border-radius:4px;border:1px solid #ddd;"></div></td><td><button class="btn-borrar" onclick="eliminarBanner(${id})"><i class="fas fa-trash"></i></button></td></tr>`; }); } catch (e) { } }
-        async function guardarBanner() { const titulo = document.getElementById('tituloBanner').value, subtitulo = document.getElementById('subtituloBanner').value, color = document.getElementById('colorBanner').value, msj = document.getElementById('mensajeBanner'); if (!titulo) return; try { const res = await fetch(`${baseUrl}/Banners`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ titulo: titulo, subtitulo: subtitulo, backgroundColor: color }) }); if (res.ok) { msj.innerText = "✅ Guardado"; msj.style.color = "var(--success)"; document.getElementById('tituloBanner').value = ""; document.getElementById('subtituloBanner').value = ""; cargarBanners(); setTimeout(() => msj.innerText = "", 3000); } } catch (e) { } }
-        async function eliminarBanner(id) { if (confirm("¿Borrar banner?")) { await fetch(`${baseUrl}/Banners/${id}`, { method: 'DELETE' }); cargarBanners(); } }
-
-        window.onload = () => {
-            cargarConfigLocal();
-            cargarPedidos();
-            cargarEstadisticas();
-            cargarEnvio();
-            cargarSabores();
-            cargarRubros();
-            cargarCategorias();
-            cargarArticulos();
-            cargarPromociones();
-            cargarBanners();
-        };
-    </script>
+    <script src="admin.js?v=2"></script>
 </body>
 </html>

@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace delivery.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class BannersController : ControllerBase
@@ -19,6 +21,7 @@ namespace delivery.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<Banner>>> GetBanners()
         {
             return await _context.Banners.ToListAsync();

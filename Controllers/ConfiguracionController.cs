@@ -5,9 +5,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using delivery.Data;
+using Microsoft.AspNetCore.Authorization;
 
 namespace delivery.Controllers
 {
+    [Authorize] // Protege todo el controlador por defecto
     [Route("api/[controller]")]
     [ApiController]
     public class ConfiguracionController : ControllerBase
@@ -19,6 +21,7 @@ namespace delivery.Controllers
             _context = context;
         }
 
+        [AllowAnonymous] // <--- LA LLAVE MÁGICA PARA QUE TUS CLIENTES PUEDAN LEER LOS DATOS
         [HttpGet]
         public async Task<IActionResult> GetConfig()
         {
@@ -42,7 +45,7 @@ namespace delivery.Controllers
                 config.Instagram = nuevaConfig.Instagram;
                 config.Facebook = nuevaConfig.Facebook;
                 config.GoogleMaps = nuevaConfig.GoogleMaps;
-                config.Alias = nuevaConfig.Alias; // <-- ¡ACÁ ESTÁ LA MAGIA!
+                config.Alias = nuevaConfig.Alias;
             }
 
             await _context.SaveChangesAsync();

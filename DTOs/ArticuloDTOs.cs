@@ -10,6 +10,7 @@
         public string? UrlImagen { get; set; }
         public int CategoriaId { get; set; }
         public int MaxGustos { get; set; }
+        public bool Activo { get; set; }
         public List<string> ImagenesExtras { get; set; } = new List<string>();
     }
 

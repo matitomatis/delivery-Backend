@@ -1,36 +1,41 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.12" />
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="10.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.11">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
-  </ItemGroup>
+		<!-- EF Core y Pomelo alineados a la versión 9.0.0 -->
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="9.0.0" />
+		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" />
 
-  <ItemGroup>
-    <Folder Include="NewFolder\" />
-    <Folder Include="Services\" />
-  </ItemGroup>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 
-  <ItemGroup>
-    <None Include="wwwroot\admin.html" />
-    <None Include="wwwroot\Gemini_Generated_Image_s0p106s0p106s0p1 %281%29.jfif" />
-    <None Include="wwwroot\index.html" />
-  </ItemGroup>
+		<PackageReference Include="SixLabors.ImageSharp" Version="2.1.9" />
 
-  <ItemGroup>
-    <ProjectReference Include="..\delivery.Data\delivery.Data.csproj" />
-  </ItemGroup>
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+	</ItemGroup>
 
+	<ItemGroup>
+		<Folder Include="NewFolder\" />
+		<Folder Include="Services\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="wwwroot\admin.html" />
+		<None Include="wwwroot\Gemini_Generated_Image_s0p106s0p106s0p1 %281%29.jfif" />
+		<None Include="wwwroot\index.html" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\delivery.Data\delivery.Data.csproj" />
+	</ItemGroup>
 </Project>
