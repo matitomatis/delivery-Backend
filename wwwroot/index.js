@@ -157,6 +157,28 @@ async function inicializarApp() {
     }
 }
 
+function copiarAlias() {
+    // Busca el texto apuntando a tu ID "alias-display"
+    const alias = document.getElementById('alias-display').innerText;
+
+    navigator.clipboard.writeText(alias).then(() => {
+        const icon = document.getElementById('copy-icon');
+        icon.className = 'fas fa-check';
+        icon.style.color = '#28a745';
+
+        mostrarNotificacion("¡Alias copiado!");
+
+        setTimeout(() => {
+            icon.className = 'far fa-copy';
+            icon.style.color = '';
+        }, 2000);
+
+    }).catch(err => {
+        console.error('Error al copiar: ', err);
+        mostrarNotificacion("No se pudo copiar automáticamente.");
+    });
+}
+
 // ==========================================
 // --- LÓGICA DE GALERÍA Y DETALLE VIP ---
 // ==========================================

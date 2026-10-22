@@ -1230,7 +1230,15 @@
 
                     <div class="form-group" id="caja-transferencia" style="display:none; background: #e0f2fe; padding: 15px; border-radius: 8px; border: 1px solid #bae6fd;">
                         <p style="margin: 0 0 5px 0; font-size: 0.85rem; color: #0369a1;">Transferí al siguiente Alias:</p>
-                        <p id="alias-display" style="margin: 0 0 10px 0; font-weight: bold; color: #0284c7; font-size: 1.2rem; user-select: all;">Cargando...</p>
+
+                        <!-- Contenedor para alinear el texto y el botón -->
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            <p id="alias-display" style="margin: 0; font-weight: bold; color: #0284c7; font-size: 1.2rem; user-select: all;">Cargando...</p>
+                            <button type="button" onclick="copiarAlias()" title="Copiar Alias" style="background: none; border: none; cursor: pointer; color: #0284c7; font-size: 1.2rem; display: flex; align-items: center; padding: 0;">
+                                <i class="far fa-copy" id="copy-icon"></i>
+                            </button>
+                        </div>
+
                         <p style="margin: 0; font-size: 0.8rem; color: #0369a1;">⚠️ <b>Importante:</b> El pedido será confirmado únicamente cuando envíes el comprobante por WhatsApp.</p>
                     </div>
 

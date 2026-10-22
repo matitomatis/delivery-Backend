@@ -147,7 +147,7 @@ namespace delivery.Controllers
 
             return Ok(new { id = nuevoPedido.CodPedido });
         }
-
+        [AllowAnonymous]
         [HttpPut("{id}")]
         public async Task<IActionResult> EditarPedido(int id, [FromBody] PedidoNuevoDto dto)
         {
