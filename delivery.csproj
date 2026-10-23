@@ -1,41 +1,40 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-	<NoWarn>$(NoWarn);NU1902;NU1903</NoWarn>
-  </PropertyGroup>
+	<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <ItemGroup>
-    <Compile Remove="Controllers\**" />
-    <Content Remove="Controllers\**" />
-    <EmbeddedResource Remove="Controllers\**" />
-    <None Remove="Controllers\**" />
-  </ItemGroup>
+		<PropertyGroup>
+			<TargetFramework>net10.0</TargetFramework>
+			<Nullable>enable</Nullable>
+			<ImplicitUsings>enable</ImplicitUsings>
+			<NoWarn>$(NoWarn);NU1902;NU1903</NoWarn>
+		</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="10.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.11">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
-  </ItemGroup>
+		<ItemGroup>
+			<!-- Paquetes de Autenticación y API (.NET 10) -->
+			<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.12" />
+			<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
+			<PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+			<PackageReference Include="SixLabors.ImageSharp" Version="2.1.9" />
 
-  <ItemGroup>
-    <Folder Include="Services\" />
-  </ItemGroup>
+			<!-- Herramientas de Base de Datos para SQL Server (.NET 10) -->
+			<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.11" />
+			<PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="10.0.11" />
+			<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.11" />
+			<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.11">
+				<PrivateAssets>all</PrivateAssets>
+				<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			</PackageReference>
+		</ItemGroup>
 
-  <ItemGroup>
-    <None Include="wwwroot\admin.html" />
-    <None Include="wwwroot\Gemini_Generated_Image_s0p106s0p106s0p1 %281%29.jfif" />
-    <None Include="wwwroot\index.html" />
-  </ItemGroup>
+		<ItemGroup>
+			<Folder Include="NewFolder\" />
+			<Folder Include="Services\" />
+		</ItemGroup>
 
- 
+		<ItemGroup>
+			<None Include="wwwroot\admin.html" />
+			<None Include="wwwroot\Gemini_Generated_Image_s0p106s0p106s0p1 %281%29.jfif" />
+			<None Include="wwwroot\index.html" />
+		</ItemGroup>
 
-</Project>
+	</Project>

@@ -1,13 +1,16 @@
-﻿using delivery.Models;
+﻿using delivery.DTOs;
+using delivery.Helpers; // <-- AGREGADO: Para poder usar ImageOptimizer
+using delivery.Models;
 using delivery.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using delivery.DTOs;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace delivery.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class ArticulosController : ControllerBase
@@ -21,13 +24,12 @@ namespace delivery.Controllers
         }
 
         // GET: api/Articulos
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<List<ArticuloGetDTO>>> Get()
         {
-            // Traemos los datos crudos
             var articulos = await _repository.GetAllAsync();
 
-            // Los traducimos al DTO seguro (incluyendo la imagen)
             var articulosDto = articulos.Select(a => new ArticuloGetDTO
             {
                 CodArticulo = a.CodArticulo,
@@ -35,13 +37,19 @@ namespace delivery.Controllers
                 Costo = a.Costo,
                 Stock = a.Stock,
                 UrlImagen = a.UrlImagen,
-                CategoriaId = a.CategoriaId
+                CategoriaId = a.CategoriaId,
+                Activo = a.Activo,
+                MaxGustos = a.MaxGustos,
+                ImagenesExtras = a.ImagenesArticulos != null
+                    ? a.ImagenesArticulos.Select(img => img.Url).ToList()
+                    : new List<string>()
             }).ToList();
 
             return Ok(articulosDto);
         }
 
         // GET: api/Articulos/5
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult<Articulo>> GetArticulo(int id)
         {
@@ -62,8 +70,19 @@ namespace delivery.Controllers
                 Descripcion = articuloDto.Descripcion,
                 Costo = articuloDto.Costo,
                 Stock = articuloDto.Stock,
-                UrlImagen = articuloDto.UrlImagen,
-                CategoriaId = articuloDto.CategoriaId
+                CategoriaId = articuloDto.CategoriaId,
+                MaxGustos = articuloDto.MaxGustos,
+
+                // --- MAGIA APLICADA: Comprimimos la foto principal ---
+                UrlImagen = ImageOptimizer.OptimizeToBase64Webp(articuloDto.UrlImagen),
+
+                // --- MAGIA APLICADA: Comprimimos la lista de fotos extra ---
+                ImagenesArticulos = articuloDto.ImagenesExtras != null
+                    ? articuloDto.ImagenesExtras.Select(url => new ImagenesArticulo
+                    {
+                        Url = ImageOptimizer.OptimizeToBase64Webp(url)
+                    }).ToList()
+                    : new List<ImagenesArticulo>()
             };
 
             await _repository.SaveAsync(nuevoArticulo);
@@ -74,7 +93,7 @@ namespace delivery.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult> EditarArticulo(int id, ArticuloCreateDTO articuloDto)
         {
-            // Buscamos el artículo original
+            // Buscamos el artículo original (el repositorio ya trae las ImagenesExtras gracias al Include)
             var articuloExistente = await _repository.GetByIdAsync(id);
             if (articuloExistente == null)
             {
@@ -86,20 +105,35 @@ namespace delivery.Controllers
             articuloExistente.Costo = articuloDto.Costo;
             articuloExistente.Stock = articuloDto.Stock;
             articuloExistente.CategoriaId = articuloDto.CategoriaId;
+            articuloExistente.MaxGustos = articuloDto.MaxGustos;
 
-            // Solo actualizamos la foto si subiste una nueva en el administrador
+            // --- MAGIA APLICADA: Comprimimos la foto principal si es que subió una nueva ---
             if (!string.IsNullOrEmpty(articuloDto.UrlImagen))
             {
-                articuloExistente.UrlImagen = articuloDto.UrlImagen;
+                articuloExistente.UrlImagen = ImageOptimizer.OptimizeToBase64Webp(articuloDto.UrlImagen);
             }
 
-            // Nota: Asumo que en tu repositorio el "SaveAsync" sirve tanto para crear como para guardar cambios. 
-            // Si tenés un método "UpdateAsync" creado en tu repositorio, cambialo acá abajo:
+            // --- MAGIA APLICADA: Comprimimos las fotos de la galería ---
+            if (articuloDto.ImagenesExtras != null)
+            {
+                // Limpiamos las fotos viejas de la memoria (EF Core las borrará de SQL Server al guardar)
+                articuloExistente.ImagenesArticulos.Clear();
+
+                // Comprimimos e insertamos las nuevas URLs que llegaron desde el frontend
+                foreach (var url in articuloDto.ImagenesExtras)
+                {
+                    articuloExistente.ImagenesArticulos.Add(new ImagenesArticulo
+                    {
+                        Url = ImageOptimizer.OptimizeToBase64Webp(url)
+                    });
+                }
+            }
+
+            // Guardamos los cambios en la base de datos
             await _repository.SaveAsync(articuloExistente);
 
             return Ok();
         }
-        // ------------------------------
 
         // DELETE: api/Articulos/5
         [HttpDelete("{id}")]
@@ -113,6 +147,18 @@ namespace delivery.Controllers
 
             await _repository.DeleteAsync(id);
             return Ok();
+        }
+
+        [HttpPut("{id}/Estado/{activo}")]
+        public async Task<IActionResult> CambiarEstadoArticulo(int id, bool activo)
+        {
+            var articulo = await _repository.GetByIdAsync(id);
+            if (articulo == null) return NotFound("El artículo no existe.");
+
+            articulo.Activo = activo;
+            await _repository.SaveAsync(articulo);
+
+            return NoContent();
         }
     }
 }

@@ -12,6 +12,8 @@ public partial class Categoria
     public int? BannerId { get; set; }
 
     public int CodRubro { get; set; }
+    public string? UrlImagen { get; set; }
+
 
     public virtual ICollection<Articulo> Articulos { get; set; } = new List<Articulo>();
 

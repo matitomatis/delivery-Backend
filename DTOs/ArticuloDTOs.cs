@@ -9,6 +9,9 @@
         public int Stock { get; set; }
         public string? UrlImagen { get; set; }
         public int CategoriaId { get; set; }
+        public int MaxGustos { get; set; }
+        public bool Activo { get; set; }
+        public List<string> ImagenesExtras { get; set; } = new List<string>();
     }
 
     // El formato que le pedimos al usuario para crear uno nuevo (¡sin el ID!)
@@ -19,5 +22,7 @@
         public int Stock { get; set; }
         public string UrlImagen { get; set; }
         public int CategoriaId { get; set; }
+        public int MaxGustos { get; set; }
+        public List<string> ImagenesExtras { get; set; } = new List<string>();
     }
 }

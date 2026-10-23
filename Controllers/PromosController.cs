@@ -5,9 +5,12 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using delivery.DTOs;
+using Microsoft.AspNetCore.Authorization;
+using delivery.Helpers; // <-- AGREGADO: Para usar el compresor
 
 namespace delivery.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class PromosController : ControllerBase
@@ -19,12 +22,14 @@ namespace delivery.Controllers
             _repository = repository;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<List<Promo>>> GetPromos()
         {
             return Ok(await _repository.GetAllAsync());
         }
 
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult<Promo>> GetPromo(int id)
         {
@@ -41,7 +46,10 @@ namespace delivery.Controllers
                 Nombre = promoDto.Nombre,
                 Descripcion = promoDto.Descripcion,
                 Categoria = promoDto.Categoria,
-                UrlImagen = promoDto.UrlImagen,
+
+                // --- COMPRESIÓN APLICADA A LA FOTO DE LA PROMO ---
+                UrlImagen = ImageOptimizer.OptimizeToBase64Webp(promoDto.UrlImagen),
+
                 PrecioVenta = promoDto.PrecioVenta,
                 Activa = true,
 
@@ -70,10 +78,11 @@ namespace delivery.Controllers
             promoExistente.Categoria = promoDto.Categoria;
             promoExistente.PrecioVenta = promoDto.PrecioVenta;
 
-            // 2. Solo actualizamos la foto si subiste una nueva
+            // 2. Solo actualizamos y comprimimos la foto si subiste una nueva
             if (!string.IsNullOrEmpty(promoDto.UrlImagen))
             {
-                promoExistente.UrlImagen = promoDto.UrlImagen;
+                // --- COMPRESIÓN APLICADA AL EDITAR ---
+                promoExistente.UrlImagen = ImageOptimizer.OptimizeToBase64Webp(promoDto.UrlImagen);
             }
 
             // 3. Actualizamos los artículos que contiene el combo

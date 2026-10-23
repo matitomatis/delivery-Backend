@@ -23,6 +23,8 @@ public partial class Articulo
 
     public int MaxGustos { get; set; }
 
+    public bool Activo { get; set; }
+
     public virtual Categoria Categoria { get; set; } = null!;
 
     public virtual ICollection<DetallePedido> DetallePedidos { get; set; } = new List<DetallePedido>();

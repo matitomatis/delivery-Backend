@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace delivery.Models;
 
-public partial class TarifasEnvio
+public partial class TarifaEnvio
 {
     public int Id { get; set; }
 

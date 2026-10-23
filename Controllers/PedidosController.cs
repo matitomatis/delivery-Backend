@@ -1,14 +1,16 @@
-﻿using delivery.Data;
-using delivery.Models;
+﻿using delivery.Models;
 using delivery.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace delivery.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class PedidosController : ControllerBase
@@ -20,21 +22,24 @@ namespace delivery.Controllers
             _context = context;
         }
 
-        // GET: api/Pedidos/Pendientes
+        // Método auxiliar para obtener siempre la hora de Argentina
+        private DateTime ObtenerHoraArgentina()
+        {
+            TimeZoneInfo argTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Argentina Standard Time");
+            return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, argTimeZone);
+        }
+
         [HttpGet("Pendientes")]
         public async Task<IActionResult> GetPendientes()
         {
             var pedidos = await _context.Pedidos
-                .Include(p => p.Cliente) // <-- Agregamos esto para traer los datos del cliente unidos al pedido
+                .Include(p => p.CodClienteNavigation)
                 .Where(p => p.Estado == "Pendiente")
                 .Select(p => new
                 {
                     id = p.CodPedido,
                     fecha = p.Fecha.ToString("dd/MM/yyyy HH:mm"),
-
-                    // Acá armamos la etiqueta del Admin usando el ID real y los datos guardados
-                    cliente = p.Cliente != null ? "#" + p.CodPedido + " - " + p.Cliente.Nombre : "#" + p.CodPedido + " - Sin Datos",
-
+                    cliente = p.CodClienteNavigation != null ? "#" + p.CodPedido + " - " + p.CodClienteNavigation.Nombre : "#" + p.CodPedido + " - Sin Datos",
                     total = p.Total
                 })
                 .OrderByDescending(p => p.id)
@@ -43,7 +48,61 @@ namespace delivery.Controllers
             return Ok(pedidos);
         }
 
-        // POST: api/Pedidos/Nuevo
+        [HttpGet("Historial")]
+        public async Task<IActionResult> GetHistorial(int anio, int mes)
+        {
+            var historial = await _context.Pedidos
+                .Include(p => p.CodClienteNavigation)
+                .Where(p => p.Estado != "Pendiente"
+                         && p.Fecha.Year == anio
+                         && p.Fecha.Month == mes)
+                .Select(p => new
+                {
+                    id = p.CodPedido,
+                    fecha = p.Fecha.ToString("dd/MM/yyyy HH:mm"),
+                    cliente = p.CodClienteNavigation != null ? "#" + p.CodPedido + " - " + p.CodClienteNavigation.Nombre : "#" + p.CodPedido + " - Sin Datos",
+                    estado = p.Estado,
+                    total = p.Total
+                })
+                .OrderByDescending(p => p.id)
+                .ToListAsync();
+
+            return Ok(historial);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetPedido(int id)
+        {
+            var pedido = await _context.Pedidos
+                .Include(p => p.CodClienteNavigation)
+                .FirstOrDefaultAsync(p => p.CodPedido == id);
+
+            if (pedido == null) return NotFound();
+
+            var detalles = await _context.Set<DetallePedido>()
+                .Include(d => d.CodArticulo)
+                .Include(d => d.CodPromo)
+                .Where(d => d.CodPedido == id)
+                .Select(d => new
+                {
+                    cantidad = d.Cantidad,
+                    precioUnitario = d.PrecioUnitario,
+                    articulo = d.CodArticulo != null ? new { descripcion = d.CodArticuloNavigation.Descripcion } : null,
+                    promo = d.CodPromo != null ? new { nombre = d.CodPromoNavigation.Nombre } : null
+                })
+                .ToListAsync();
+
+            return Ok(new
+            {
+                id = pedido.CodPedido,
+                fecha = pedido.Fecha.ToString("dd/MM/yyyy HH:mm"),
+                cliente = pedido.CodClienteNavigation?.Nombre ?? "Consumidor Final",
+                total = pedido.Total,
+                detalles = detalles
+            });
+        }
+
+        [AllowAnonymous]
         [HttpPost("Nuevo")]
         public async Task<IActionResult> CrearPedido([FromBody] PedidoNuevoDto dto)
         {
@@ -57,10 +116,10 @@ namespace delivery.Controllers
 
             var nuevoPedido = new Pedido
             {
-                Fecha = DateTime.Now,
+                Fecha = ObtenerHoraArgentina(), // <-- OBLIGAMOS A USAR LA HORA ARGENTINA
                 Estado = "Pendiente",
                 Total = dto.Total,
-                CodCliente = nuevoCliente.CodCliente,
+                CodClienteNavigation = nuevoCliente,
                 CodFormaPago = 1,
                 CodTipoEnvio = 1
             };
@@ -68,11 +127,66 @@ namespace delivery.Controllers
             _context.Pedidos.Add(nuevoPedido);
             await _context.SaveChangesAsync();
 
-            // <-- ¡MAGIA ACÁ! Devolvemos el ID que SQL le acaba de asignar al pedido
+            if (dto.Detalles != null && dto.Detalles.Any())
+            {
+                foreach (var item in dto.Detalles)
+                {
+                    var detalle = new DetallePedido
+                    {
+                        CodPedido = nuevoPedido.CodPedido,
+                        CodArticulo = item.CodArticulo,
+                        CodPromo = item.CodPromo,
+                        Cantidad = item.Cantidad,
+                        PrecioUnitario = item.Precio
+                    };
+                    _context.Set<DetallePedido>().Add(detalle);
+                }
+                await _context.SaveChangesAsync();
+            }
+
             return Ok(new { id = nuevoPedido.CodPedido });
         }
+        [AllowAnonymous]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> EditarPedido(int id, [FromBody] PedidoNuevoDto dto)
+        {
+            var pedido = await _context.Pedidos
+                .Include(p => p.CodClienteNavigation)
+                .FirstOrDefaultAsync(p => p.CodPedido == id);
 
-        // PUT: api/Pedidos/5/Estado
+            if (pedido == null) return NotFound();
+
+            pedido.Total = dto.Total;
+
+            if (pedido.CodClienteNavigation != null)
+            {
+                pedido.CodClienteNavigation.Nombre = dto.Cliente;
+            }
+
+            if (dto.Detalles != null)
+            {
+                var detallesViejos = await _context.Set<DetallePedido>().Where(d => d.CodPedido == id).ToListAsync();
+                _context.Set<DetallePedido>().RemoveRange(detallesViejos);
+
+                foreach (var item in dto.Detalles)
+                {
+                    var detalle = new DetallePedido
+                    {
+                        CodPedido = pedido.CodPedido,
+                        CodArticulo = item.CodArticulo,
+                        CodPromo = item.CodPromo,
+                        Cantidad = item.Cantidad,
+                        PrecioUnitario = item.Precio
+                    };
+                    _context.Set<DetallePedido>().Add(detalle);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { id = pedido.CodPedido });
+        }
+
         [HttpPut("{id}/Estado")]
         public async Task<IActionResult> UpdateEstado(int id, [FromBody] string nuevoEstado)
         {
@@ -88,7 +202,16 @@ namespace delivery.Controllers
 
     public class PedidoNuevoDto
     {
-        public string Cliente { get; set; }
+        public string? Cliente { get; set; }
         public decimal Total { get; set; }
+        public List<DetalleDto>? Detalles { get; set; }
+    }
+
+    public class DetalleDto
+    {
+        public int? CodArticulo { get; set; }
+        public int? CodPromo { get; set; }
+        public short Cantidad { get; set; }
+        public decimal Precio { get; set; }
     }
 }
