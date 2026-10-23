@@ -1,6 +1,7 @@
 using delivery.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using delivery.Models;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,8 +9,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        b => b.MigrationsAssembly("delivery.Data")
+        builder.Configuration.GetConnectionString("DefaultConnection")
     )
 );
 builder.Services.AddScoped<IArticuloRepository, ArticuloRepository>();
@@ -18,7 +18,7 @@ builder.Services.AddScoped<IPromoRepository, PromoRepository>();
 builder.Services.AddScoped<IFormaPagoRepository, FormaPagoRepository>();
 builder.Services.AddScoped<ITipoEnvioRepository, TipoEnvioRepository>();
 builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
-// Add services to the container.
+//Add services to the container.
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

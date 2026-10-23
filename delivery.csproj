@@ -1,10 +1,18 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+	<NoWarn>$(NoWarn);NU1902;NU1903</NoWarn>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Controllers\**" />
+    <Content Remove="Controllers\**" />
+    <EmbeddedResource Remove="Controllers\**" />
+    <None Remove="Controllers\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
@@ -19,7 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="NewFolder\" />
     <Folder Include="Services\" />
   </ItemGroup>
 
@@ -29,8 +36,6 @@
     <None Include="wwwroot\index.html" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\delivery.Data\delivery.Data.csproj" />
-  </ItemGroup>
+ 
 
 </Project>
