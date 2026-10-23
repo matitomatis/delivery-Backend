@@ -1,5 +1,4 @@
-﻿using delivery.Data; // Revisá que coincida con tu namespace
-using delivery.Models;
+﻿using delivery.Models;
 using delivery.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -23,7 +22,7 @@ namespace delivery.Controllers
         public async Task<ActionResult<decimal>> GetTarifa()
         {
             // Buscamos el primer registro sin forzar el Id
-            var tarifa = await _context.TarifasEnvio.FirstOrDefaultAsync();
+            var tarifa = await _context.TarifasEnvios.FirstOrDefaultAsync();
 
             if (tarifa == null)
             {
@@ -37,13 +36,13 @@ namespace delivery.Controllers
         public async Task<IActionResult> UpdateTarifa([FromBody] decimal nuevoCosto)
         {
             // Buscamos el primer registro
-            var tarifa = await _context.TarifasEnvio.FirstOrDefaultAsync();
+            var tarifa = await _context.TarifasEnvios.FirstOrDefaultAsync();
 
             if (tarifa == null)
             {
                 // Lo creamos SIN asignarle el Id a mano. SQL lo hace solo.
                 tarifa = new TarifaEnvio { Costo = nuevoCosto };
-                _context.TarifasEnvio.Add(tarifa);
+                _context.TarifasEnvios.Add(tarifa);
             }
             else
             {

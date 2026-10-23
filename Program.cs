@@ -4,6 +4,7 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using delivery.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,7 +28,7 @@ builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
 builder.Services.AddScoped<IGustoRepository, GustoRepository>();
 
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+//builder.Services.AddOpenApi();
 
 // CONFIGURACIÓN DE AUTENTICACIÓN JWT (De nueva-funcionalidad)
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

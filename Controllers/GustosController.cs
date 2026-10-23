@@ -1,4 +1,4 @@
-﻿using delivery.Data.Repositories;
+﻿using delivery.Repositories;
 using delivery.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

@@ -1,5 +1,4 @@
-﻿using delivery.Data;
-using delivery.Models;
+﻿using delivery.Models;
 using delivery.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -34,13 +33,13 @@ namespace delivery.Controllers
         public async Task<IActionResult> GetPendientes()
         {
             var pedidos = await _context.Pedidos
-                .Include(p => p.Cliente)
+                .Include(p => p.CodClienteNavigation)
                 .Where(p => p.Estado == "Pendiente")
                 .Select(p => new
                 {
                     id = p.CodPedido,
                     fecha = p.Fecha.ToString("dd/MM/yyyy HH:mm"),
-                    cliente = p.Cliente != null ? "#" + p.CodPedido + " - " + p.Cliente.Nombre : "#" + p.CodPedido + " - Sin Datos",
+                    cliente = p.CodClienteNavigation != null ? "#" + p.CodPedido + " - " + p.CodClienteNavigation.Nombre : "#" + p.CodPedido + " - Sin Datos",
                     total = p.Total
                 })
                 .OrderByDescending(p => p.id)
@@ -53,7 +52,7 @@ namespace delivery.Controllers
         public async Task<IActionResult> GetHistorial(int anio, int mes)
         {
             var historial = await _context.Pedidos
-                .Include(p => p.Cliente)
+                .Include(p => p.CodClienteNavigation)
                 .Where(p => p.Estado != "Pendiente"
                          && p.Fecha.Year == anio
                          && p.Fecha.Month == mes)
@@ -61,7 +60,7 @@ namespace delivery.Controllers
                 {
                     id = p.CodPedido,
                     fecha = p.Fecha.ToString("dd/MM/yyyy HH:mm"),
-                    cliente = p.Cliente != null ? "#" + p.CodPedido + " - " + p.Cliente.Nombre : "#" + p.CodPedido + " - Sin Datos",
+                    cliente = p.CodClienteNavigation != null ? "#" + p.CodPedido + " - " + p.CodClienteNavigation.Nombre : "#" + p.CodPedido + " - Sin Datos",
                     estado = p.Estado,
                     total = p.Total
                 })
@@ -75,21 +74,21 @@ namespace delivery.Controllers
         public async Task<IActionResult> GetPedido(int id)
         {
             var pedido = await _context.Pedidos
-                .Include(p => p.Cliente)
+                .Include(p => p.CodClienteNavigation)
                 .FirstOrDefaultAsync(p => p.CodPedido == id);
 
             if (pedido == null) return NotFound();
 
             var detalles = await _context.Set<DetallePedido>()
-                .Include(d => d.Articulo)
-                .Include(d => d.Promo)
+                .Include(d => d.CodArticulo)
+                .Include(d => d.CodPromo)
                 .Where(d => d.CodPedido == id)
                 .Select(d => new
                 {
                     cantidad = d.Cantidad,
                     precioUnitario = d.PrecioUnitario,
-                    articulo = d.Articulo != null ? new { descripcion = d.Articulo.Descripcion } : null,
-                    promo = d.Promo != null ? new { nombre = d.Promo.Nombre } : null
+                    articulo = d.CodArticulo != null ? new { descripcion = d.CodArticuloNavigation.Descripcion } : null,
+                    promo = d.CodPromo != null ? new { nombre = d.CodPromoNavigation.Nombre } : null
                 })
                 .ToListAsync();
 
@@ -97,7 +96,7 @@ namespace delivery.Controllers
             {
                 id = pedido.CodPedido,
                 fecha = pedido.Fecha.ToString("dd/MM/yyyy HH:mm"),
-                cliente = pedido.Cliente?.Nombre ?? "Consumidor Final",
+                cliente = pedido.CodClienteNavigation?.Nombre ?? "Consumidor Final",
                 total = pedido.Total,
                 detalles = detalles
             });
@@ -120,7 +119,7 @@ namespace delivery.Controllers
                 Fecha = ObtenerHoraArgentina(), // <-- OBLIGAMOS A USAR LA HORA ARGENTINA
                 Estado = "Pendiente",
                 Total = dto.Total,
-                CodCliente = nuevoCliente.CodCliente,
+                CodClienteNavigation = nuevoCliente,
                 CodFormaPago = 1,
                 CodTipoEnvio = 1
             };
@@ -152,16 +151,16 @@ namespace delivery.Controllers
         public async Task<IActionResult> EditarPedido(int id, [FromBody] PedidoNuevoDto dto)
         {
             var pedido = await _context.Pedidos
-                .Include(p => p.Cliente)
+                .Include(p => p.CodClienteNavigation)
                 .FirstOrDefaultAsync(p => p.CodPedido == id);
 
             if (pedido == null) return NotFound();
 
             pedido.Total = dto.Total;
 
-            if (pedido.Cliente != null)
+            if (pedido.CodClienteNavigation != null)
             {
-                pedido.Cliente.Nombre = dto.Cliente;
+                pedido.CodClienteNavigation.Nombre = dto.Cliente;
             }
 
             if (dto.Detalles != null)

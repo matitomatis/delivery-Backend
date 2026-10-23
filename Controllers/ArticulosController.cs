@@ -40,8 +40,8 @@ namespace delivery.Controllers
                 CategoriaId = a.CategoriaId,
                 Activo = a.Activo,
                 MaxGustos = a.MaxGustos,
-                ImagenesExtras = a.ImagenesExtras != null
-                    ? a.ImagenesExtras.Select(img => img.Url).ToList()
+                ImagenesExtras = a.ImagenesArticulos != null
+                    ? a.ImagenesArticulos.Select(img => img.Url).ToList()
                     : new List<string>()
             }).ToList();
 
@@ -77,12 +77,12 @@ namespace delivery.Controllers
                 UrlImagen = ImageOptimizer.OptimizeToBase64Webp(articuloDto.UrlImagen),
 
                 // --- MAGIA APLICADA: Comprimimos la lista de fotos extra ---
-                ImagenesExtras = articuloDto.ImagenesExtras != null
-                    ? articuloDto.ImagenesExtras.Select(url => new ImagenArticulo
+                ImagenesArticulos = articuloDto.ImagenesExtras != null
+                    ? articuloDto.ImagenesExtras.Select(url => new ImagenesArticulo
                     {
                         Url = ImageOptimizer.OptimizeToBase64Webp(url)
                     }).ToList()
-                    : new List<ImagenArticulo>()
+                    : new List<ImagenesArticulo>()
             };
 
             await _repository.SaveAsync(nuevoArticulo);
@@ -117,12 +117,12 @@ namespace delivery.Controllers
             if (articuloDto.ImagenesExtras != null)
             {
                 // Limpiamos las fotos viejas de la memoria (EF Core las borrará de SQL Server al guardar)
-                articuloExistente.ImagenesExtras.Clear();
+                articuloExistente.ImagenesArticulos.Clear();
 
                 // Comprimimos e insertamos las nuevas URLs que llegaron desde el frontend
                 foreach (var url in articuloDto.ImagenesExtras)
                 {
-                    articuloExistente.ImagenesExtras.Add(new ImagenArticulo
+                    articuloExistente.ImagenesArticulos.Add(new ImagenesArticulo
                     {
                         Url = ImageOptimizer.OptimizeToBase64Webp(url)
                     });

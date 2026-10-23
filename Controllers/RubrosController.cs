@@ -1,5 +1,4 @@
-﻿using delivery.Data;
-using delivery.Models;
+﻿using delivery.Models;
 using delivery.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

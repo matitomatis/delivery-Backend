@@ -1,10 +1,9 @@
-﻿using delivery.Data.Models;
-using delivery.Models;
+﻿using delivery.Models;
 using delivery.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
-using delivery.Data;
+using delivery.Models;
 using Microsoft.AspNetCore.Authorization;
 
 namespace delivery.Controllers
@@ -26,12 +25,12 @@ namespace delivery.Controllers
         public async Task<IActionResult> GetConfig()
         {
             var config = await _context.ConfiguracionesLocales.FirstOrDefaultAsync();
-            if (config == null) return Ok(new ConfiguracionLocal());
+            if (config == null) return Ok(new ConfiguracionesLocal());
             return Ok(config);
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateConfig([FromBody] ConfiguracionLocal nuevaConfig)
+        public async Task<IActionResult> UpdateConfig([FromBody] ConfiguracionesLocal nuevaConfig)
         {
             var config = await _context.ConfiguracionesLocales.FirstOrDefaultAsync();
 

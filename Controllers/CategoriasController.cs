@@ -66,7 +66,7 @@ namespace delivery.Controllers
             // Si subieron una nueva foto al editar, la reemplazamos
             if (dto.ArchivoImagen != null && dto.ArchivoImagen.Length > 0)
             {
-                categoria.UrlImagen = await GuardarImagenFisica(dto.ArchivoImagen);
+                //categoria.UrlImagen = await GuardarImagenFisica(dto.ArchivoImagen);
             }
 
             await _context.SaveChangesAsync();
